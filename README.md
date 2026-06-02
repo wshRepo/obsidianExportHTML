@@ -1,142 +1,107 @@
-# Export to HTML | 导出为 HTML
+# Export to HTML
 
 <div align="center">
 
-**将您的 Obsidian 笔记转换为专业级 HTML 文档**
+**将 Obsidian 笔记转换为专业级单文件 HTML 文档**
 
-*Transform Your Obsidian Notes into Professional HTML Documents*
-
-[![Version](https://img.shields.io/badge/version-1.0.5-blue)](https://github.com/almoost/obsidianExportHTML)
-[![License](https://img.shields.io/badge/license-MIT-green)](https://github.com/almoost/obsidianExportHTML/blob/main/LICENSE)
-[![Obsidian](https://img.shields.io/badge/obsidian-0.12.4+-purple)](https://obsidian.md)
+[![Version](https://img.shields.io/badge/version-1.0.6-blue)](https://github.com/JustWSH/obsidianExportHTML)
+[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![Obsidian](https://img.shields.io/badge/obsidian-0.15.0+-purple)](https://obsidian.md)
 
 </div>
 
----
+## 功能特性
 
-## 📖 在线预览 | Online Preview
+- **智能目录导航** — 自动生成层级目录，支持宽度调节和平滑滚动
+- **图片 Base64 嵌入** — 单文件即可分享，无需额外资源
+- **代码块增强** — 行号显示、一键复制、同步滚动
+- **数学公式渲染** — 支持 LaTeX 语法，基于 KaTeX 快速渲染
+- **双语界面** — 自动适配中英文环境
 
-查看实际导出效果：
-View the actual export results:
+## 使用方法
 
-- [📄 演示 HTML](https://justwsh.github.io/obsidianExportHTML/demo/demo.html) - 查看导出后的 HTML 效果
-- [📄 Demo HTML](https://justwsh.github.io/obsidianExportHTML/demo/demo.html) - View the exported HTML effect
-- [📝 演示源文件](demo/demo.md) - 查看用于导出的 Markdown 源文件
-- [📝 Demo Source](demo/demo.md) - View the Markdown source file used for export
+1. 在 Obsidian 文件浏览器中右键点击 Markdown 文件
+2. 选择「导出为 HTML...」
+3. 选择保存位置，完成导出
 
----
+或使用命令面板 `Ctrl/Cmd + P`，搜索 `Export to HTML`。
 
-## 🌟 产品亮点 | Product Highlights
+## 在线预览
 
-### 🎨 专业风格 | ProfessionalStyle
-- 采用经典的配色方案，呈现简洁、专业的视觉效果
-- Clean and professional visual presentation with classic color scheme
+- [演示 HTML](https://justwsh.github.io/obsidianExportHTML/demo/demo.html)
+- [源文件](demo/demo.md)
 
-### 📑 智能目录导航 | Smart Table of Contents
-- 自动从笔记标题生成层级化目录
-- Automatically generates hierarchical table of contents from headings
-- 可调节宽度的侧边栏，适应不同阅读习惯
-- Adjustable sidebar width to adapt to different reading preferences
-- 平滑滚动定位，提升阅读体验
-- Smooth scrolling for enhanced reading experience
+## 开发指南
 
-### 🖼️ 图片自动嵌入 | Automatic Image Embedding
-- 图片自动转换为 Base64 编码嵌入 HTML
-- Images automatically converted to Base64 and embedded in HTML
-- 无需额外图片文件夹，单文件即可分享
-- No need for extra image folders, single file ready to share
-- 支持多种图片格式：PNG, JPG, GIF, SVG, WebP 等
-- Supports multiple image formats: PNG, JPG, GIF, SVG, WebP, etc.
+### 环境要求
 
-### 💻 代码块增强 | Enhanced Code Blocks
-- 带行号的代码块，方便引用和讨论
-- Code blocks with line numbers for easy reference and discussion
-- 一键复制功能，快速分享代码
-- One-click copy functionality for quick code sharing
-- 优化的滚动体验，同步行号显示
-- Optimized scrolling with synchronized line numbers
+- Node.js >= 16
+- npm >= 7
 
-### 📐 数学公式支持 | Math Formula Support
-- 支持 LaTeX 格式的数学公式渲染
-- Support for LaTeX-style math formula rendering
-- 自动检测并渲染行内公式和块级公式
-- Automatic detection and rendering of inline and block formulas
-- 支持多种公式语法：`$...$`、`$$...$$`、`\(...\)`、`\[...\]`
-- Supports multiple formula syntaxes: `$...$`, `$$...$$`, `\(...\)`, `\[...\]`
-- 基于 KaTeX 库，渲染快速且美观
-- Based on KaTeX library, fast and beautiful rendering
+### 安装依赖
 
----
+```bash
+npm install
+```
 
-## ✨ 核心功能 | Core Features
+### 构建命令
 
-| 功能 Feature | 描述 Description |
-|------------|------------------|
-| 🖱️ **右键菜单集成** | 在文件浏览器中右键点击即可导出 |
-| 🖱️ **Right-click Menu** | Right-click in file explorer to export instantly |
-| 📁 **自定义保存位置** | 自由选择 HTML 文件保存路径 |
-| 📁 **Custom Save Location** | Freely choose where to save HTML files |
-| 🌐 **双语支持** | 完整支持中文和英文界面 |
-| 🌐 **Bilingual Support** | Full support for Chinese and English interfaces |
-| 🎯 **智能默认值** | 默认保存至源文件同级目录 |
-| 🎯 **Smart Defaults** | Default save to same directory as source file |
-| 📤 **一键分享** | 单个 HTML 文件，便于邮件和网页分享 |
-| 📤 **Easy Sharing** | Single HTML file, easy to share via email and web |
-| 📐 **数学公式渲染** | 支持 LaTeX 格式的数学公式 |
-| 📐 **Math Formula Rendering** | Support for LaTeX-style math formulas |
+```bash
+npm run build    # 生产构建：生成 KaTeX 常量 + esbuild 打包
+npm run dev      # 开发模式：esbuild watch（不自动生成 KaTeX 常量）
+npm run lint     # ESLint 检查
+```
 
----
+### 项目结构
 
-## 🚀 使用指南 | Usage Guide
+```
+obsidianExportHTML/
+├── main.ts              # 插件源码（唯一源文件）
+├── main.js              # 打包产物
+├── manifest.json        # Obsidian 插件清单
+├── package.json
+├── katex-constants.ts   # 自动生成，勿手动编辑
+├── scripts/
+│   └── generate-katex-constants.js
+└── my-export-html/      # 可直接安装的插件目录
+```
 
-### 快速开始 | Quick Start
+### 核心架构
 
-1. **选择文件** | Select File
-   - 在 Obsidian 文件浏览器中找到要导出的笔记
-   - Find the note you want to export in Obsidian file explorer
+插件所有逻辑集中在 `main.ts`：
 
-2. **右键导出** | Right-click Export
-   - 右键点击文件，选择「导出为 HTML...」
-   - Right-click the file and select "Export to HTML..."
+| 组件 | 职责 |
+|------|------|
+| `ExportHTMLPlugin` | 主类：注册命令、右键菜单、设置面板 |
+| `exportToHTML()` | 文件保存流程（Electron dialog + fs） |
+| `convertMarkdownToHTML()` | 核心转换：公式保护 → Markdown 渲染 → KaTeX 还原 → TOC 生成 → 图片 Base64 → 代码块包装 |
+| `GITHUB_CSS` | 内联 CSS 样式 |
+| `TRANSLATIONS` | 中英双语翻译 |
 
-3. **保存文件** | Save File
-   - 选择保存位置（默认与源文件同目录）
-   - Choose save location (default: same directory as source)
-   - 点击「保存」完成导出
-   - Click "Save" to complete export
+### 技术要点
 
-### 高级功能 | Advanced Features
+- 通过 `window.require()` 访问 Electron/Node.js 模块（Obsidian 桌面端标准做法）
+- 数学公式先用占位符保护，渲染后还原为 KaTeX 标签
+- 图片解析优先 `metadataCache.getFirstLinkpathDest()`，回退路径拼接
+- 生成的 HTML 完全自包含：CSS 内联、KaTeX Base64 嵌入、图片 Base64 嵌入
 
-#### 自定义设置 | Custom Settings
-- **导出后自动打开文件夹** | Auto-open folder after export
-  - 启用后自动在文件管理器中打开导出文件所在目录
-  - Automatically opens file explorer to the export location when enabled
+### 安装到 Obsidian
 
----
+```bash
+# 1. 构建项目
+npm run build
 
-## 📄 许可证 | License
+# 2. 将根目录的 main.js 复制到 my-export-html 目录
+cp main.js my-export-html/
 
-MIT License - 详见 [LICENSE](LICENSE) 文件
+# 3. 将 my-export-html 目录复制到 vault 的插件目录
+cp -r my-export-html /path/to/vault/.obsidian/plugins/
+```
 
-See [LICENSE](LICENSE) file for details.
+> **注意**：`my-export-html/main.js` 不会自动更新，每次构建后需手动复制。
 
----
+然后在 Obsidian 设置 → 第三方插件 中启用。
 
-## 🙏 致谢 | Acknowledgments
+## 许可证
 
-- 感谢 Obsidian 团队提供的优秀笔记工具
-- Thanks to the Obsidian team for the excellent note-taking tool
-
----
-
-<div align="center">
-
-**如果喜欢这个插件，请给个 ⭐ Star 支持！**
-
-**If you like this plugin, please give it a ⭐ Star!**
-
-[GitHub 仓库](https://github.com/JustWSH/obsidianExportHTML) | [问题反馈](https://github.com/JustWSH/obsidianExportHTML/issues)
-
-Made with ❤️ by @almoost
-
-</div>
+[MIT](LICENSE)
