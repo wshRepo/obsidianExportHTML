@@ -1198,6 +1198,10 @@ document.addEventListener('DOMContentLoaded', function() {
 		const wrapped = html.replace(
 			/<pre([^>]*)>([\s\S]*?)<\/pre>/g,
 			(match, attributes, content) => {
+				if (/display\s*:\s*none/i.test(attributes)) {
+					return match;
+				}
+
 				const textContent = content.replace(/<[^>]*>/g, '');
 				const decoded = textContent
 					.replace(/&lt;/g, '<')
