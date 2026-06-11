@@ -350,6 +350,7 @@ img {
 	box-sizing: content-box;
 	border-radius: 8px;
 	margin: 0.5em 0;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 a {
@@ -1069,6 +1070,9 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   wrapCodeBlocks(html) {
     const wrapped = html.replace(/<pre([^>]*)>([\s\S]*?)<\/pre>/g, (match, attributes, content) => {
+      if (/display\s*:\s*none/i.test(attributes)) {
+        return match;
+      }
       const textContent = content.replace(/<[^>]*>/g, "");
       const decoded = textContent.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&").replace(/&quot;/g, '"').replace(/&#39;/g, "'");
       const trimmed = decoded.replace(/\n+$/, "");
