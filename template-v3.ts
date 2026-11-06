@@ -11,8 +11,10 @@
  * 相对参考页的取舍（均已与用户确认）：
  * - 去掉「刷新」「语言」按钮、页头「版本」、页脚品牌行、属性区块；
  * - 代码块固定显示行号，只保留复制按钮，不引入语法高亮；
- * - 默认浅色、默认宽屏；
- * - 大纲在窄屏改为堆叠在正文上方（参考页直接隐藏，会出现按钮点了没反应的问题）。
+ * - 下拉菜单去掉左侧单选点与右侧对勾，只留色块与文字；
+ * - 默认浅色、默认窄屏（顶栏可手动切宽屏）；
+ * - 大纲在窄屏改为堆叠在正文上方（参考页直接隐藏，会出现按钮点了没反应的问题），
+ *   并限制高度 + 优化滚动条，避免长目录在手机上占满整屏。
  */
 import { V3_THEME_CSS, V3_PREVIEW_CSS } from './template-v3-css';
 import type { HeadingInfo } from './template-types';
@@ -66,9 +68,6 @@ const ICON_COPY = lucide('lucide lucide-copy size-4',
 
 const ICON_CHECK = lucide('lucide lucide-check size-4', '<path d="M20 6 9 17l-5-5"/>');
 
-/** 单选指示点：仅当前项可见（参考页用 lucide-circle 实心圆） */
-const ICON_RADIO = lucide('lucide lucide-circle h-2 w-2 fill-current', '<circle cx="12" cy="12" r="10"/>');
-
 /* ============================================================
  * 二、类名常量（全部照抄参考页 DOM，保证命中其编译产物）
  * ============================================================ */
@@ -85,9 +84,9 @@ const BTN_SOLID =
 const BTN_CODE =
 	'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition-all outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*=\'size-\'])]:size-4 shrink-0 [&_svg]:shrink-0 min-touch-target size-8 border border-border/70 bg-background/85 text-muted-foreground shadow-sm backdrop-blur hover:bg-background hover:text-foreground';
 
-/** 下拉菜单项（参考页 Radix 菜单项） */
+/** 下拉菜单项（参考页 Radix 菜单项；按需求去掉左侧单选点与右侧对勾） */
 const POP_ITEM =
-	'relative flex select-none items-center py-1.5 pl-8 pr-2 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground rounded-lg cursor-pointer';
+	'relative flex select-none items-center py-1.5 pl-2 pr-2 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground rounded-lg cursor-pointer';
 
 /** 大纲条目：普通态 */
 const TOC_LINK =
@@ -508,32 +507,7 @@ const V3_UI_CSS = `
 	to { opacity: 1; transform: scale(1); }
 }
 
-.v3-radio,
-.v3-check {
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	flex: none;
-}
-
-.v3-radio {
-	position: absolute;
-	left: 0.5rem;
-	width: 0.875rem;
-	height: 0.875rem;
-}
-
-.v3-check {
-	margin-left: auto;
-	width: 1rem;
-	height: 1rem;
-}
-
-.v3-pop-item[aria-checked="false"] .v3-radio,
-.v3-pop-item[aria-checked="false"] .v3-check {
-	visibility: hidden;
-}
-
+/* 左侧单选点与右侧对勾已按需求移除，这里只保留色块与文字 */
 .v3-swatch {
 	flex: none;
 	width: 0.5rem;
@@ -545,17 +519,120 @@ const V3_UI_CSS = `
 
 .v3-pop-item .v3-label { white-space: nowrap; }
 
+/* ===== 滚动条：Windows/Chromium 默认滚动条在浅色下是粗黑条，这里统一改成细浅色 ===== */
+/* 适用于大纲正文、代码块、表格与公式的滚动容器，深浅色主题都靠 --muted-foreground 自适应 */
+.v3-toc-body,
+.code-block-wrapper pre,
+.markdown-preview .my-4.overflow-x-auto,
+.markdown-preview .math-display {
+	scrollbar-width: thin;
+	/* 先给不支持 color-mix 的旧内核一个纯色兜底，再覆盖成半透明 */
+	scrollbar-color: var(--muted-foreground) transparent;
+	scrollbar-color: color-mix(in oklab, var(--muted-foreground) 45%, transparent) transparent;
+}
+
+.v3-toc-body::-webkit-scrollbar,
+.code-block-wrapper pre::-webkit-scrollbar,
+.markdown-preview .my-4.overflow-x-auto::-webkit-scrollbar,
+.markdown-preview .math-display::-webkit-scrollbar {
+	width: 8px;
+	height: 8px;
+}
+
+.v3-toc-body::-webkit-scrollbar-track,
+.code-block-wrapper pre::-webkit-scrollbar-track,
+.markdown-preview .my-4.overflow-x-auto::-webkit-scrollbar-track,
+.markdown-preview .math-display::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+.v3-toc-body::-webkit-scrollbar-thumb,
+.code-block-wrapper pre::-webkit-scrollbar-thumb,
+.markdown-preview .my-4.overflow-x-auto::-webkit-scrollbar-thumb,
+.markdown-preview .math-display::-webkit-scrollbar-thumb {
+	background-color: var(--muted-foreground);
+	background-color: color-mix(in oklab, var(--muted-foreground) 45%, transparent);
+	border-radius: 9999px;
+	/* 留出内边距让圆角滚动条不贴边 */
+	border: 2px solid transparent;
+	background-clip: padding-box;
+}
+
+.v3-toc-body::-webkit-scrollbar-thumb:hover,
+.code-block-wrapper pre::-webkit-scrollbar-thumb:hover,
+.markdown-preview .my-4.overflow-x-auto::-webkit-scrollbar-thumb:hover,
+.markdown-preview .math-display::-webkit-scrollbar-thumb:hover {
+	background-color: color-mix(in oklab, var(--muted-foreground) 75%, transparent);
+}
+
+/* 去掉上下箭头按钮与右下角补块，只留一条细滑块 */
+.v3-toc-body::-webkit-scrollbar-button,
+.code-block-wrapper pre::-webkit-scrollbar-button,
+.markdown-preview .my-4.overflow-x-auto::-webkit-scrollbar-button,
+.markdown-preview .math-display::-webkit-scrollbar-button {
+	display: none;
+	width: 0;
+	height: 0;
+}
+
+.v3-toc-body::-webkit-scrollbar-corner,
+.code-block-wrapper pre::-webkit-scrollbar-corner,
+.markdown-preview .my-4.overflow-x-auto::-webkit-scrollbar-corner,
+.markdown-preview .math-display::-webkit-scrollbar-corner {
+	background: transparent;
+}
+
 /* ===== 窄屏：参考页直接隐藏大纲，这里改为堆叠在正文上方，避免按钮失效 ===== */
 @media (max-width: 1023px) {
 	.v3-toc {
 		position: static;
 		width: 100%;
-		max-height: none;
+		/* 限高：25 条目录在手机上不能占满整屏，超出部分在面板内部滚动 */
+		max-height: 45vh;
+	}
+
+	/* items-start 在 flex-col 下会按内容给卡片定宽，宽表格会把卡片撑出屏幕，
+	   再被外层 overflow-x-clip 裁掉且无法横向滚动，所以改成拉伸到容器宽度 */
+	.v3-main-box {
+		align-items: stretch;
 	}
 }
 
 body.v3-toc-hidden .v3-toc {
 	display: none;
+}
+
+/* ===== 手机阅读：压缩留白，把宽度让给正文；宽内容一律横向滚动 ===== */
+@media (max-width: 640px) {
+	.markdown-preview article {
+		padding: 1.5rem 1rem 2.5rem;
+	}
+
+	/* 右侧 80px 是给复制按钮留的，手机上收窄，别吃掉太多代码可视宽度 */
+	.code-block-wrapper pre {
+		padding-right: 3.5rem;
+	}
+
+	.markdown-preview h1 {
+		font-size: 1.5rem;
+		line-height: 2rem;
+	}
+}
+
+/* 表格、代码、公式在窄屏下靠横向滚动，不挤压排版、不换行撑破卡片 */
+.code-block-wrapper pre,
+.markdown-preview .my-4.overflow-x-auto,
+.markdown-preview .math-display {
+	overscroll-behavior-x: contain;
+	-webkit-overflow-scrolling: touch;
+}
+
+/* 中文在任意字间都能换行，表格用 width:100% 会被压成一字一行；
+   窄屏下按内容固有宽度撑开，超出部分交给外层 overflow-x-auto 横向滚动 */
+@media (max-width: 767px) {
+	.markdown-preview table {
+		min-width: max-content;
+	}
 }
 
 /* ===== 打印：只留正文 ===== */
@@ -629,7 +706,7 @@ const V3_SCRIPT = `
 		try { localStorage.setItem(key, value); } catch (e) {}
 	}
 
-	/* —— 宽屏：默认开，可切回窄屏 —— */
+	/* —— 宽屏：默认关（窄屏），点按可切到全宽 —— */
 	function applyWidth(isWide) {
 		var boxes = document.querySelectorAll('[data-v3-width]');
 		for (var i = 0; i < boxes.length; i++) {
@@ -646,7 +723,7 @@ const V3_SCRIPT = `
 			applyWidth(document.querySelector('main > div').classList.contains('max-w-none') === false);
 		});
 	}
-	applyWidth(read('export-html-v3-width') !== 'false');
+	applyWidth(read('export-html-v3-width') === 'true');
 
 	/* —— 大纲显隐 —— */
 	var tocBtn = document.querySelector('[data-v3-toc-btn]');
@@ -941,16 +1018,11 @@ function wrapTables(html: string): string {
 		.replace(/<\/table>/g, '</table></div>');
 }
 
-/** 配色菜单项：左侧单选点 + 色块 + 名称 + 右侧对勾 */
+/** 配色菜单项：色块 + 名称（按需求去掉左侧单选点与右侧对勾） */
 function buildSchemeItems(): string {
 	return SCHEMES.map((scheme) => {
 		const checked = scheme === 'default';
-		return `<button type="button" role="menuitemradio" class="${POP_ITEM}" aria-checked="${checked}" data-scheme="${scheme}">
-			<span class="v3-radio">${ICON_RADIO}</span>
-			<span class="v3-swatch"></span>
-			<span class="v3-label" data-i18n="scheme.${scheme}">${escapeHtml(I18N[`scheme.${scheme}`].en)}</span>
-			<span class="v3-check">${ICON_CHECK}</span>
-		</button>`;
+		return `<button type="button" role="menuitemradio" class="${POP_ITEM}" aria-checked="${checked}" data-scheme="${scheme}"><span class="v3-swatch"></span><span class="v3-label" data-i18n="scheme.${scheme}">${escapeHtml(I18N[`scheme.${scheme}`].en)}</span></button>`;
 	}).join('');
 }
 
@@ -958,11 +1030,7 @@ function buildSchemeItems(): string {
 function buildThemeItems(): string {
 	return THEMES.map((theme) => {
 		const checked = theme === 'light';
-		return `<button type="button" role="menuitemradio" class="${POP_ITEM}" aria-checked="${checked}" data-theme="${theme}">
-			<span class="v3-radio">${ICON_RADIO}</span>
-			<span class="v3-label" data-i18n="theme.${theme}">${escapeHtml(I18N[`theme.${theme}`].en)}</span>
-			<span class="v3-check">${ICON_CHECK}</span>
-		</button>`;
+		return `<button type="button" role="menuitemradio" class="${POP_ITEM}" aria-checked="${checked}" data-theme="${theme}"><span class="v3-label" data-i18n="theme.${theme}">${escapeHtml(I18N[`theme.${theme}`].en)}</span></button>`;
 	}).join('');
 }
 
@@ -976,7 +1044,8 @@ export function buildV3Template(options: V3TemplateOptions): string {
 
 	const safeTitle = escapeHtml(title);
 	const tocHtml = buildFlatToc(headings);
-	const articleClass = 'mx-auto px-5 py-10 transition-all duration-300 break-words max-w-none';
+	// 默认窄屏（max-w-225 正好卡在 900px 可读宽度），顶栏宽屏按钮可切到 max-w-none
+	const articleClass = 'mx-auto px-5 py-10 transition-all duration-300 break-words max-w-225';
 
 	return `<!DOCTYPE html>
 <html lang="en" class="light">
@@ -995,12 +1064,12 @@ export function buildV3Template(options: V3TemplateOptions): string {
 	<div class="min-h-screen bg-background relative overflow-x-clip">
 		<div class="relative z-10 flex flex-col min-h-screen">
 			<header class="border-b bg-card/50 backdrop-blur-md sticky top-0 z-20 px-4 py-3 sm:px-6">
-				<div class="mx-auto flex items-center justify-between gap-4 transition-all duration-300 max-w-none" data-v3-width data-wide="max-w-none" data-narrow="max-w-5xl">
+				<div class="mx-auto flex items-center justify-between gap-4 transition-all duration-300 max-w-5xl" data-v3-width data-wide="max-w-none" data-narrow="max-w-5xl">
 					<div class="flex items-center gap-3 min-w-0">
 						<div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">${ICON_FILE}</div>
 						<div class="min-w-0">
 							<h1 class="truncate text-lg font-bold sm:text-xl">${safeTitle}</h1>
-							<div class="flex items-center gap-3 text-xs text-muted-foreground">
+							<div class="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
 								<span class="flex items-center gap-1">${ICON_CALENDAR}${formatDateTime(mtime)}</span>
 							</div>
 						</div>
@@ -1024,7 +1093,7 @@ export function buildV3Template(options: V3TemplateOptions): string {
 				</div>
 			</header>
 			<main class="flex-1 overflow-visible p-4 sm:p-6 lg:p-8">
-				<div class="mx-auto flex flex-col lg:flex-row items-start gap-4 overflow-visible transition-all duration-300 max-w-none" data-v3-width data-wide="max-w-none" data-narrow="max-w-5xl">
+				<div class="mx-auto flex flex-col lg:flex-row items-start gap-4 overflow-visible transition-all duration-300 max-w-5xl v3-main-box" data-v3-width data-wide="max-w-none" data-narrow="max-w-5xl">
 					<div class="flex-1 min-w-0 overflow-visible rounded-2xl border bg-card shadow-sm">
 						<div class="markdown-preview">
 							<article class="${articleClass}" data-v3-width data-wide="max-w-none" data-narrow="max-w-225">
@@ -1036,7 +1105,7 @@ export function buildV3Template(options: V3TemplateOptions): string {
 						<div class="sticky top-0 border-b bg-card px-4 py-3 flex items-center justify-between z-10">
 							<h3 class="text-sm font-semibold" data-i18n="toc.title">${escapeHtml(I18N['toc.title'].en)}</h3>
 						</div>
-						<div class="p-2 flex-1 overflow-y-auto min-h-0">
+						<div class="p-2 flex-1 overflow-y-auto min-h-0 v3-toc-body">
 							${tocHtml}
 						</div>
 					</nav>` : ''}

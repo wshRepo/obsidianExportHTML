@@ -658,25 +658,10 @@ const TRANSLATIONS: { [key: string]: { [lang: string]: string } } = {
 		'zh': 'HTML 模板',
 		en: 'HTML template'
 	},
-	'Choose the HTML template used for export. v1 is the classic style; v2 refreshes it with light/dark themes and mobile-friendly reading.': {
-		'zh-CN': '导出使用的 HTML 模板。v1 为经典样式；v2 优化了排版，支持浅色/深色主题与手机友好阅读；v3 复刻 Obsync 分享页的阅读版式，默认浅色与宽屏。',
-		'zh': '导出使用的 HTML 模板。v1 为经典样式；v2 优化了排版，支持浅色/深色主题与手机友好阅读；v3 复刻 Obsync 分享页的阅读版式，默认浅色与宽屏。',
-		en: 'Choose the HTML template used for export. v1 is the classic style; v2 refreshes it with light/dark themes and mobile-friendly reading; v3 mirrors the Obsync share-page layout, defaulting to light mode and full width.'
-	},
-	'Classic (v1)': {
-		'zh-CN': '经典（v1）',
-		'zh': '经典（v1）',
-		en: 'Classic (v1)'
-	},
-	'Refreshed (v2)': {
-		'zh-CN': '焕新（v2）',
-		'zh': '焕新（v2）',
-		en: 'Refreshed (v2)'
-	},
-	'Obsidian-style (v3)': {
-		'zh-CN': 'Obsidian 风格（v3）',
-		'zh': 'Obsidian 风格（v3）',
-		en: 'Obsidian-style (v3)'
+	'HTML template used for export.': {
+		'zh-CN': '导出使用的HTML模板。',
+		'zh': '导出使用的HTML模板。',
+		en: 'HTML template used for export.'
 	}
 };
 
@@ -1599,11 +1584,11 @@ class ExportHTMLSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName(this.plugin.translate('HTML template'))
-			.setDesc(this.plugin.translate('Choose the HTML template used for export. v1 is the classic style; v2 refreshes it with light/dark themes and mobile-friendly reading.'))
+			.setDesc(this.plugin.translate('HTML template used for export.'))
 			.addDropdown(dropdown => dropdown
-				.addOption('v1', this.plugin.translate('Classic (v1)'))
-				.addOption('v2', this.plugin.translate('Refreshed (v2)'))
-				.addOption('v3', this.plugin.translate('Obsidian-style (v3)'))
+				.addOption('v1', 'v1')
+				.addOption('v2', 'v2')
+				.addOption('v3', 'v3')
 				.setValue(this.plugin.settings.templateVersion)
 				.onChange(async (value: string) => {
 					// 只接受合法值，防止旧配置里出现意外的字符串

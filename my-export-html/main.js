@@ -884,11 +884,10 @@ var ICON_THEME = lucide("lucide lucide-monitor size-5", '<rect width="20" height
 var ICON_LIST = lucide("lucide lucide-list size-5", '<path d="M3 12h.01"/><path d="M3 18h.01"/><path d="M3 6h.01"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M8 6h13"/>');
 var ICON_COPY = lucide("lucide lucide-copy size-4", '<rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>');
 var ICON_CHECK = lucide("lucide lucide-check size-4", '<path d="M20 6 9 17l-5-5"/>');
-var ICON_RADIO = lucide("lucide lucide-circle h-2 w-2 fill-current", '<circle cx="12" cy="12" r="10"/>');
 var BTN_GHOST = "inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all outline-none focus-visible:border-ring focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 min-touch-target size-9 hover:bg-accent/50 hover:text-foreground focus-visible:outline-none focus-visible:ring-0 rounded-xl";
 var BTN_SOLID = "inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 hover:bg-accent hover:text-accent-foreground min-touch-target size-9 rounded-xl transition-colors";
 var BTN_CODE = "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition-all outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 min-touch-target size-8 border border-border/70 bg-background/85 text-muted-foreground shadow-sm backdrop-blur hover:bg-background hover:text-foreground";
-var POP_ITEM = "relative flex select-none items-center py-1.5 pl-8 pr-2 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground rounded-lg cursor-pointer";
+var POP_ITEM = "relative flex select-none items-center py-1.5 pl-2 pr-2 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground rounded-lg cursor-pointer";
 var TOC_LINK = "block rounded-r-md border-l-2 border-transparent px-2 py-1.5 text-sm transition-all duration-200 text-muted-foreground hover:bg-muted/50 hover:text-foreground";
 var SCHEMES = ["default", "green", "blue", "sky-blue", "purple", "orange", "rose", "teal"];
 var THEMES = ["system", "light", "dark"];
@@ -1278,32 +1277,7 @@ var V3_UI_CSS = `
 	to { opacity: 1; transform: scale(1); }
 }
 
-.v3-radio,
-.v3-check {
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	flex: none;
-}
-
-.v3-radio {
-	position: absolute;
-	left: 0.5rem;
-	width: 0.875rem;
-	height: 0.875rem;
-}
-
-.v3-check {
-	margin-left: auto;
-	width: 1rem;
-	height: 1rem;
-}
-
-.v3-pop-item[aria-checked="false"] .v3-radio,
-.v3-pop-item[aria-checked="false"] .v3-check {
-	visibility: hidden;
-}
-
+/* \u5DE6\u4FA7\u5355\u9009\u70B9\u4E0E\u53F3\u4FA7\u5BF9\u52FE\u5DF2\u6309\u9700\u6C42\u79FB\u9664\uFF0C\u8FD9\u91CC\u53EA\u4FDD\u7559\u8272\u5757\u4E0E\u6587\u5B57 */
 .v3-swatch {
 	flex: none;
 	width: 0.5rem;
@@ -1315,17 +1289,120 @@ var V3_UI_CSS = `
 
 .v3-pop-item .v3-label { white-space: nowrap; }
 
+/* ===== \u6EDA\u52A8\u6761\uFF1AWindows/Chromium \u9ED8\u8BA4\u6EDA\u52A8\u6761\u5728\u6D45\u8272\u4E0B\u662F\u7C97\u9ED1\u6761\uFF0C\u8FD9\u91CC\u7EDF\u4E00\u6539\u6210\u7EC6\u6D45\u8272 ===== */
+/* \u9002\u7528\u4E8E\u5927\u7EB2\u6B63\u6587\u3001\u4EE3\u7801\u5757\u3001\u8868\u683C\u4E0E\u516C\u5F0F\u7684\u6EDA\u52A8\u5BB9\u5668\uFF0C\u6DF1\u6D45\u8272\u4E3B\u9898\u90FD\u9760 --muted-foreground \u81EA\u9002\u5E94 */
+.v3-toc-body,
+.code-block-wrapper pre,
+.markdown-preview .my-4.overflow-x-auto,
+.markdown-preview .math-display {
+	scrollbar-width: thin;
+	/* \u5148\u7ED9\u4E0D\u652F\u6301 color-mix \u7684\u65E7\u5185\u6838\u4E00\u4E2A\u7EAF\u8272\u515C\u5E95\uFF0C\u518D\u8986\u76D6\u6210\u534A\u900F\u660E */
+	scrollbar-color: var(--muted-foreground) transparent;
+	scrollbar-color: color-mix(in oklab, var(--muted-foreground) 45%, transparent) transparent;
+}
+
+.v3-toc-body::-webkit-scrollbar,
+.code-block-wrapper pre::-webkit-scrollbar,
+.markdown-preview .my-4.overflow-x-auto::-webkit-scrollbar,
+.markdown-preview .math-display::-webkit-scrollbar {
+	width: 8px;
+	height: 8px;
+}
+
+.v3-toc-body::-webkit-scrollbar-track,
+.code-block-wrapper pre::-webkit-scrollbar-track,
+.markdown-preview .my-4.overflow-x-auto::-webkit-scrollbar-track,
+.markdown-preview .math-display::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+.v3-toc-body::-webkit-scrollbar-thumb,
+.code-block-wrapper pre::-webkit-scrollbar-thumb,
+.markdown-preview .my-4.overflow-x-auto::-webkit-scrollbar-thumb,
+.markdown-preview .math-display::-webkit-scrollbar-thumb {
+	background-color: var(--muted-foreground);
+	background-color: color-mix(in oklab, var(--muted-foreground) 45%, transparent);
+	border-radius: 9999px;
+	/* \u7559\u51FA\u5185\u8FB9\u8DDD\u8BA9\u5706\u89D2\u6EDA\u52A8\u6761\u4E0D\u8D34\u8FB9 */
+	border: 2px solid transparent;
+	background-clip: padding-box;
+}
+
+.v3-toc-body::-webkit-scrollbar-thumb:hover,
+.code-block-wrapper pre::-webkit-scrollbar-thumb:hover,
+.markdown-preview .my-4.overflow-x-auto::-webkit-scrollbar-thumb:hover,
+.markdown-preview .math-display::-webkit-scrollbar-thumb:hover {
+	background-color: color-mix(in oklab, var(--muted-foreground) 75%, transparent);
+}
+
+/* \u53BB\u6389\u4E0A\u4E0B\u7BAD\u5934\u6309\u94AE\u4E0E\u53F3\u4E0B\u89D2\u8865\u5757\uFF0C\u53EA\u7559\u4E00\u6761\u7EC6\u6ED1\u5757 */
+.v3-toc-body::-webkit-scrollbar-button,
+.code-block-wrapper pre::-webkit-scrollbar-button,
+.markdown-preview .my-4.overflow-x-auto::-webkit-scrollbar-button,
+.markdown-preview .math-display::-webkit-scrollbar-button {
+	display: none;
+	width: 0;
+	height: 0;
+}
+
+.v3-toc-body::-webkit-scrollbar-corner,
+.code-block-wrapper pre::-webkit-scrollbar-corner,
+.markdown-preview .my-4.overflow-x-auto::-webkit-scrollbar-corner,
+.markdown-preview .math-display::-webkit-scrollbar-corner {
+	background: transparent;
+}
+
 /* ===== \u7A84\u5C4F\uFF1A\u53C2\u8003\u9875\u76F4\u63A5\u9690\u85CF\u5927\u7EB2\uFF0C\u8FD9\u91CC\u6539\u4E3A\u5806\u53E0\u5728\u6B63\u6587\u4E0A\u65B9\uFF0C\u907F\u514D\u6309\u94AE\u5931\u6548 ===== */
 @media (max-width: 1023px) {
 	.v3-toc {
 		position: static;
 		width: 100%;
-		max-height: none;
+		/* \u9650\u9AD8\uFF1A25 \u6761\u76EE\u5F55\u5728\u624B\u673A\u4E0A\u4E0D\u80FD\u5360\u6EE1\u6574\u5C4F\uFF0C\u8D85\u51FA\u90E8\u5206\u5728\u9762\u677F\u5185\u90E8\u6EDA\u52A8 */
+		max-height: 45vh;
+	}
+
+	/* items-start \u5728 flex-col \u4E0B\u4F1A\u6309\u5185\u5BB9\u7ED9\u5361\u7247\u5B9A\u5BBD\uFF0C\u5BBD\u8868\u683C\u4F1A\u628A\u5361\u7247\u6491\u51FA\u5C4F\u5E55\uFF0C
+	   \u518D\u88AB\u5916\u5C42 overflow-x-clip \u88C1\u6389\u4E14\u65E0\u6CD5\u6A2A\u5411\u6EDA\u52A8\uFF0C\u6240\u4EE5\u6539\u6210\u62C9\u4F38\u5230\u5BB9\u5668\u5BBD\u5EA6 */
+	.v3-main-box {
+		align-items: stretch;
 	}
 }
 
 body.v3-toc-hidden .v3-toc {
 	display: none;
+}
+
+/* ===== \u624B\u673A\u9605\u8BFB\uFF1A\u538B\u7F29\u7559\u767D\uFF0C\u628A\u5BBD\u5EA6\u8BA9\u7ED9\u6B63\u6587\uFF1B\u5BBD\u5185\u5BB9\u4E00\u5F8B\u6A2A\u5411\u6EDA\u52A8 ===== */
+@media (max-width: 640px) {
+	.markdown-preview article {
+		padding: 1.5rem 1rem 2.5rem;
+	}
+
+	/* \u53F3\u4FA7 80px \u662F\u7ED9\u590D\u5236\u6309\u94AE\u7559\u7684\uFF0C\u624B\u673A\u4E0A\u6536\u7A84\uFF0C\u522B\u5403\u6389\u592A\u591A\u4EE3\u7801\u53EF\u89C6\u5BBD\u5EA6 */
+	.code-block-wrapper pre {
+		padding-right: 3.5rem;
+	}
+
+	.markdown-preview h1 {
+		font-size: 1.5rem;
+		line-height: 2rem;
+	}
+}
+
+/* \u8868\u683C\u3001\u4EE3\u7801\u3001\u516C\u5F0F\u5728\u7A84\u5C4F\u4E0B\u9760\u6A2A\u5411\u6EDA\u52A8\uFF0C\u4E0D\u6324\u538B\u6392\u7248\u3001\u4E0D\u6362\u884C\u6491\u7834\u5361\u7247 */
+.code-block-wrapper pre,
+.markdown-preview .my-4.overflow-x-auto,
+.markdown-preview .math-display {
+	overscroll-behavior-x: contain;
+	-webkit-overflow-scrolling: touch;
+}
+
+/* \u4E2D\u6587\u5728\u4EFB\u610F\u5B57\u95F4\u90FD\u80FD\u6362\u884C\uFF0C\u8868\u683C\u7528 width:100% \u4F1A\u88AB\u538B\u6210\u4E00\u5B57\u4E00\u884C\uFF1B
+   \u7A84\u5C4F\u4E0B\u6309\u5185\u5BB9\u56FA\u6709\u5BBD\u5EA6\u6491\u5F00\uFF0C\u8D85\u51FA\u90E8\u5206\u4EA4\u7ED9\u5916\u5C42 overflow-x-auto \u6A2A\u5411\u6EDA\u52A8 */
+@media (max-width: 767px) {
+	.markdown-preview table {
+		min-width: max-content;
+	}
 }
 
 /* ===== \u6253\u5370\uFF1A\u53EA\u7559\u6B63\u6587 ===== */
@@ -1390,7 +1467,7 @@ var V3_SCRIPT = `
 		try { localStorage.setItem(key, value); } catch (e) {}
 	}
 
-	/* \u2014\u2014 \u5BBD\u5C4F\uFF1A\u9ED8\u8BA4\u5F00\uFF0C\u53EF\u5207\u56DE\u7A84\u5C4F \u2014\u2014 */
+	/* \u2014\u2014 \u5BBD\u5C4F\uFF1A\u9ED8\u8BA4\u5173\uFF08\u7A84\u5C4F\uFF09\uFF0C\u70B9\u6309\u53EF\u5207\u5230\u5168\u5BBD \u2014\u2014 */
 	function applyWidth(isWide) {
 		var boxes = document.querySelectorAll('[data-v3-width]');
 		for (var i = 0; i < boxes.length; i++) {
@@ -1407,7 +1484,7 @@ var V3_SCRIPT = `
 			applyWidth(document.querySelector('main > div').classList.contains('max-w-none') === false);
 		});
 	}
-	applyWidth(read('export-html-v3-width') !== 'false');
+	applyWidth(read('export-html-v3-width') === 'true');
 
 	/* \u2014\u2014 \u5927\u7EB2\u663E\u9690 \u2014\u2014 */
 	var tocBtn = document.querySelector('[data-v3-toc-btn]');
@@ -1680,29 +1757,20 @@ function wrapTables(html) {
 function buildSchemeItems() {
   return SCHEMES.map((scheme) => {
     const checked = scheme === "default";
-    return `<button type="button" role="menuitemradio" class="${POP_ITEM}" aria-checked="${checked}" data-scheme="${scheme}">
-			<span class="v3-radio">${ICON_RADIO}</span>
-			<span class="v3-swatch"></span>
-			<span class="v3-label" data-i18n="scheme.${scheme}">${escapeHtml(I18N[`scheme.${scheme}`].en)}</span>
-			<span class="v3-check">${ICON_CHECK}</span>
-		</button>`;
+    return `<button type="button" role="menuitemradio" class="${POP_ITEM}" aria-checked="${checked}" data-scheme="${scheme}"><span class="v3-swatch"></span><span class="v3-label" data-i18n="scheme.${scheme}">${escapeHtml(I18N[`scheme.${scheme}`].en)}</span></button>`;
   }).join("");
 }
 function buildThemeItems() {
   return THEMES.map((theme) => {
     const checked = theme === "light";
-    return `<button type="button" role="menuitemradio" class="${POP_ITEM}" aria-checked="${checked}" data-theme="${theme}">
-			<span class="v3-radio">${ICON_RADIO}</span>
-			<span class="v3-label" data-i18n="theme.${theme}">${escapeHtml(I18N[`theme.${theme}`].en)}</span>
-			<span class="v3-check">${ICON_CHECK}</span>
-		</button>`;
+    return `<button type="button" role="menuitemradio" class="${POP_ITEM}" aria-checked="${checked}" data-theme="${theme}"><span class="v3-label" data-i18n="theme.${theme}">${escapeHtml(I18N[`theme.${theme}`].en)}</span></button>`;
   }).join("");
 }
 function buildV3Template(options) {
   const { title, mtime, headings, contentHtml, mathCss, mathScript } = options;
   const safeTitle = escapeHtml(title);
   const tocHtml = buildFlatToc(headings);
-  const articleClass = "mx-auto px-5 py-10 transition-all duration-300 break-words max-w-none";
+  const articleClass = "mx-auto px-5 py-10 transition-all duration-300 break-words max-w-225";
   return `<!DOCTYPE html>
 <html lang="en" class="light">
 <head>
@@ -1720,12 +1788,12 @@ function buildV3Template(options) {
 	<div class="min-h-screen bg-background relative overflow-x-clip">
 		<div class="relative z-10 flex flex-col min-h-screen">
 			<header class="border-b bg-card/50 backdrop-blur-md sticky top-0 z-20 px-4 py-3 sm:px-6">
-				<div class="mx-auto flex items-center justify-between gap-4 transition-all duration-300 max-w-none" data-v3-width data-wide="max-w-none" data-narrow="max-w-5xl">
+				<div class="mx-auto flex items-center justify-between gap-4 transition-all duration-300 max-w-5xl" data-v3-width data-wide="max-w-none" data-narrow="max-w-5xl">
 					<div class="flex items-center gap-3 min-w-0">
 						<div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">${ICON_FILE}</div>
 						<div class="min-w-0">
 							<h1 class="truncate text-lg font-bold sm:text-xl">${safeTitle}</h1>
-							<div class="flex items-center gap-3 text-xs text-muted-foreground">
+							<div class="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
 								<span class="flex items-center gap-1">${ICON_CALENDAR}${formatDateTime(mtime)}</span>
 							</div>
 						</div>
@@ -1749,7 +1817,7 @@ function buildV3Template(options) {
 				</div>
 			</header>
 			<main class="flex-1 overflow-visible p-4 sm:p-6 lg:p-8">
-				<div class="mx-auto flex flex-col lg:flex-row items-start gap-4 overflow-visible transition-all duration-300 max-w-none" data-v3-width data-wide="max-w-none" data-narrow="max-w-5xl">
+				<div class="mx-auto flex flex-col lg:flex-row items-start gap-4 overflow-visible transition-all duration-300 max-w-5xl v3-main-box" data-v3-width data-wide="max-w-none" data-narrow="max-w-5xl">
 					<div class="flex-1 min-w-0 overflow-visible rounded-2xl border bg-card shadow-sm">
 						<div class="markdown-preview">
 							<article class="${articleClass}" data-v3-width data-wide="max-w-none" data-narrow="max-w-225">
@@ -1761,7 +1829,7 @@ function buildV3Template(options) {
 						<div class="sticky top-0 border-b bg-card px-4 py-3 flex items-center justify-between z-10">
 							<h3 class="text-sm font-semibold" data-i18n="toc.title">${escapeHtml(I18N["toc.title"].en)}</h3>
 						</div>
-						<div class="p-2 flex-1 overflow-y-auto min-h-0">
+						<div class="p-2 flex-1 overflow-y-auto min-h-0 v3-toc-body">
 							${tocHtml}
 						</div>
 					</nav>` : ""}
@@ -2492,25 +2560,10 @@ var TRANSLATIONS = {
     "zh": "HTML \u6A21\u677F",
     en: "HTML template"
   },
-  "Choose the HTML template used for export. v1 is the classic style; v2 refreshes it with light/dark themes and mobile-friendly reading.": {
-    "zh-CN": "\u5BFC\u51FA\u4F7F\u7528\u7684 HTML \u6A21\u677F\u3002v1 \u4E3A\u7ECF\u5178\u6837\u5F0F\uFF1Bv2 \u4F18\u5316\u4E86\u6392\u7248\uFF0C\u652F\u6301\u6D45\u8272/\u6DF1\u8272\u4E3B\u9898\u4E0E\u624B\u673A\u53CB\u597D\u9605\u8BFB\uFF1Bv3 \u590D\u523B Obsync \u5206\u4EAB\u9875\u7684\u9605\u8BFB\u7248\u5F0F\uFF0C\u9ED8\u8BA4\u6D45\u8272\u4E0E\u5BBD\u5C4F\u3002",
-    "zh": "\u5BFC\u51FA\u4F7F\u7528\u7684 HTML \u6A21\u677F\u3002v1 \u4E3A\u7ECF\u5178\u6837\u5F0F\uFF1Bv2 \u4F18\u5316\u4E86\u6392\u7248\uFF0C\u652F\u6301\u6D45\u8272/\u6DF1\u8272\u4E3B\u9898\u4E0E\u624B\u673A\u53CB\u597D\u9605\u8BFB\uFF1Bv3 \u590D\u523B Obsync \u5206\u4EAB\u9875\u7684\u9605\u8BFB\u7248\u5F0F\uFF0C\u9ED8\u8BA4\u6D45\u8272\u4E0E\u5BBD\u5C4F\u3002",
-    en: "Choose the HTML template used for export. v1 is the classic style; v2 refreshes it with light/dark themes and mobile-friendly reading; v3 mirrors the Obsync share-page layout, defaulting to light mode and full width."
-  },
-  "Classic (v1)": {
-    "zh-CN": "\u7ECF\u5178\uFF08v1\uFF09",
-    "zh": "\u7ECF\u5178\uFF08v1\uFF09",
-    en: "Classic (v1)"
-  },
-  "Refreshed (v2)": {
-    "zh-CN": "\u7115\u65B0\uFF08v2\uFF09",
-    "zh": "\u7115\u65B0\uFF08v2\uFF09",
-    en: "Refreshed (v2)"
-  },
-  "Obsidian-style (v3)": {
-    "zh-CN": "Obsidian \u98CE\u683C\uFF08v3\uFF09",
-    "zh": "Obsidian \u98CE\u683C\uFF08v3\uFF09",
-    en: "Obsidian-style (v3)"
+  "HTML template used for export.": {
+    "zh-CN": "\u5BFC\u51FA\u4F7F\u7528\u7684HTML\u6A21\u677F\u3002",
+    "zh": "\u5BFC\u51FA\u4F7F\u7528\u7684HTML\u6A21\u677F\u3002",
+    en: "HTML template used for export."
   }
 };
 var ExportHTMLPlugin = class extends import_obsidian.Plugin {
@@ -3167,7 +3220,7 @@ var ExportHTMLSettingTab = class extends import_obsidian.PluginSettingTab {
   display() {
     const { containerEl } = this;
     containerEl.empty();
-    new import_obsidian.Setting(containerEl).setName(this.plugin.translate("HTML template")).setDesc(this.plugin.translate("Choose the HTML template used for export. v1 is the classic style; v2 refreshes it with light/dark themes and mobile-friendly reading.")).addDropdown((dropdown) => dropdown.addOption("v1", this.plugin.translate("Classic (v1)")).addOption("v2", this.plugin.translate("Refreshed (v2)")).addOption("v3", this.plugin.translate("Obsidian-style (v3)")).setValue(this.plugin.settings.templateVersion).onChange(async (value) => {
+    new import_obsidian.Setting(containerEl).setName(this.plugin.translate("HTML template")).setDesc(this.plugin.translate("HTML template used for export.")).addDropdown((dropdown) => dropdown.addOption("v1", "v1").addOption("v2", "v2").addOption("v3", "v3").setValue(this.plugin.settings.templateVersion).onChange(async (value) => {
       if (value === "v1" || value === "v2" || value === "v3") {
         this.plugin.settings.templateVersion = value;
         await this.plugin.saveSettings();
