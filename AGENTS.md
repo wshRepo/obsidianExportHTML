@@ -19,4 +19,6 @@ Copy-Item main.js my-export-html\main.js -Force
 
 漏同步的后果：Obsidian 里跑的仍是旧版插件，用户会以为修改没生效。
 
-注意：`generated-katex-constants.js` 需要 `node_modules\katex` 存在，缺依赖时跳过它也能构建（`katex-constants.ts` 已提交入库）。
+注意：
+- `generate-katex-constants.js` 失败会 `exit(1)` 直接中断 `npm run build`，不会自动跳过。缺 `node_modules\katex` 时需手动分步执行：先跑 esbuild（跳过生成脚本），构建仍会成功
+- 跳过的后果：导出内嵌的是已提交的 `katex-constants.ts` 里的旧版 KaTeX。只有当 package.json 升级过 katex 而未重新生成常量时才是真问题（新语法渲染不出来）；只是本地缺依赖则完全无影响
