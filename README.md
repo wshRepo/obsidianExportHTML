@@ -4,14 +4,14 @@
 
 将 Obsidian 笔记导出为单个 HTML 文件。图片、KaTeX 公式、样式全部内嵌，离线可用，可直接分享或归档。
 
-![version](https://img.shields.io/badge/version-1.1.2-blue) ![license](https://img.shields.io/badge/license-MIT-green) ![obsidian](https://img.shields.io/badge/obsidian-0.15.0+-purple)
+![version](https://img.shields.io/badge/version-1.2.1-blue) ![license](https://img.shields.io/badge/license-MIT-green) ![obsidian](https://img.shields.io/badge/obsidian-0.15.0+-purple)
 
 ## 功能
 
 - 三种导出模板，可在设置中切换：
   - v1 经典：与旧版完全一致的样式
   - v2 焕新：浅色/深色主题（默认跟随系统，右上角按钮切换并记忆）、移动端适配（窄屏下目录收起为抽屉）、正文不限最大宽度、窄屏下宽表格整体横向滚动
-  - v3 Obsidian 风格：复刻 Obsync 分享页的阅读版式——顶部工具栏（宽屏/配色/主题/大纲）+ 卡片正文 + 右侧大纲，默认浅色、默认窄屏，界面语言按系统判定（中/英，其余回退英语）；表格、代码、公式在窄屏下横向滚动，手机端大纲默认收起，点顶栏按钮弹出悬浮目录
+  - v3：复刻 Obsidian Fast Note Sync 分享页的阅读版式——顶部工具栏（宽屏/配色/主题/大纲）+ 卡片正文 + 右侧大纲，默认浅色、默认窄屏，界面语言按系统判定（中/英，其余回退英语）；表格、代码、公式在窄屏下横向滚动，手机端大纲默认收起，点顶栏按钮弹出悬浮目录
 - 自动生成层级目录，滚动时高亮当前章节，宽度可拖拽调节（200–600px，v1/v2）
 - 代码块带行号和复制按钮
 - 图片与公式以 Base64 内嵌，导出结果是完全自包含的单文件
@@ -70,7 +70,7 @@ npm run lint
 ```
 main.ts                # 插件主逻辑：导出流程、共享逻辑、设置页
 template-v2.ts         # v2 模板的样式与外壳
-template-v3.ts         # v3 模板：复刻 Obsync 分享页的版式与交互
+template-v3.ts         # v3 模板：复刻 Obsidian Fast Note Sync 分享页的版式与交互
 template-types.ts      # 模板版本类型与标题结构
 katex-render.ts        # KaTeX 样式/脚本注入片段（导出与演示共用）
 markdown-utils.ts      # 代码区域切分与公式占位符（纯函数，不依赖 Obsidian）
