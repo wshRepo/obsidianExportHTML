@@ -30,7 +30,20 @@ For a manual install, clone and build this repo, then copy `my-export-html/` int
 
 The default save location is the note's own folder; you can change it in the save dialog.
 
+## Settings
+
+Settings → Community plugins → My Export To HTML. Two options:
+
+| Setting | Default | Description |
+|---|---|---|
+| HTML template | Refreshed (v2) | Template used for export; applies to the next export |
+| Open folder after export | On | Opens the containing folder once the export succeeds |
+
 ## Preview
+
+The v2 template in light mode (the sidebar highlights the section you're reading):
+
+![v2 template](docs/screenshots/v2-light.png)
 
 - [v2 template demo](demo/demo-v2.html) (use your browser's device toolbar to see the mobile layout)
 - [v1 template demo](demo/demo.html)

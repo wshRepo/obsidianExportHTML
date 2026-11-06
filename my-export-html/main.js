@@ -1469,7 +1469,7 @@ table tr:hover {
 var DEFAULT_SETTINGS = {
   autoOpenFolder: true,
   exportPath: "",
-  templateVersion: "v1"
+  templateVersion: "v2"
 };
 var TRANSLATIONS = {
   "Export to HTML...": {

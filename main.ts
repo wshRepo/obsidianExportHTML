@@ -597,8 +597,8 @@ interface ExportHTMLPluginSettings {
 const DEFAULT_SETTINGS: ExportHTMLPluginSettings = {
 	autoOpenFolder: true,
 	exportPath: '',
-	/** 默认保持 v1，老用户升级后导出效果不变 */
-	templateVersion: 'v1'
+	/** 默认使用 v2（双主题 + 移动端适配） */
+	templateVersion: 'v2'
 };
 
 /**
