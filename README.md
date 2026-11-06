@@ -4,7 +4,7 @@
 
 将 Obsidian 笔记导出为单个 HTML 文件。图片、KaTeX 公式、样式全部内嵌，离线可用，可直接分享或归档。
 
-![version](https://img.shields.io/badge/version-1.1.1-blue) ![license](https://img.shields.io/badge/license-MIT-green) ![obsidian](https://img.shields.io/badge/obsidian-0.15.0+-purple)
+![version](https://img.shields.io/badge/version-1.1.2-blue) ![license](https://img.shields.io/badge/license-MIT-green) ![obsidian](https://img.shields.io/badge/obsidian-0.15.0+-purple)
 
 ## 功能
 

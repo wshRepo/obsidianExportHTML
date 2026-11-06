@@ -4,7 +4,7 @@ English | [中文](README.md)
 
 Export Obsidian notes to a single HTML file. Images, KaTeX formulas and styles are all embedded, so the result works offline and can be shared or archived as-is.
 
-![version](https://img.shields.io/badge/version-1.1.1-blue) ![license](https://img.shields.io/badge/license-MIT-green) ![obsidian](https://img.shields.io/badge/obsidian-0.15.0+-purple)
+![version](https://img.shields.io/badge/version-1.1.2-blue) ![license](https://img.shields.io/badge/license-MIT-green) ![obsidian](https://img.shields.io/badge/obsidian-0.15.0+-purple)
 
 ## Features
 
