@@ -86,7 +86,7 @@ const BTN_CODE =
 
 /** 下拉菜单项（参考页 Radix 菜单项；按需求去掉左侧单选点与右侧对勾） */
 const POP_ITEM =
-	'relative flex select-none items-center py-1.5 pl-2 pr-2 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground rounded-lg cursor-pointer';
+	'v3-pop-item relative flex select-none items-center py-1.5 pl-2 pr-2 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground rounded-lg cursor-pointer';
 
 /** 大纲条目：普通态 */
 const TOC_LINK =
@@ -145,8 +145,17 @@ const V3_CONTENT_CSS = `
 	overflow-wrap: anywhere;
 }
 
-.markdown-preview > :first-child { margin-top: 0; }
-.markdown-preview > :last-child { margin-bottom: 0; }
+/* 首/末元素贴边：注意作用域必须是 article 的直接子元素，
+   写成 .markdown-preview > :first-child 只会命中 article 本身，
+   正文首标题的 margin-top 会残留，导致开头空出一大块 */
+.markdown-preview article > :first-child { margin-top: 0; }
+.markdown-preview article > :last-child { margin-bottom: 0; }
+
+/* 正文卡片上留白：py-10(40px) 收到 24px，配合上面首元素归零，
+   顶部空白从 72px 降到 24px（约原来的 1/3） */
+.markdown-preview article {
+	padding-top: 1.5rem;
+}
 
 .markdown-preview h1,
 .markdown-preview h2,
@@ -238,18 +247,32 @@ const V3_CONTENT_CSS = `
 	padding-left: 0.25rem;
 }
 
-/* Tailwind preflight 把所有 input 的 appearance 置为 none，
-   复选框会退化成 0×0 的方块，这里恢复原生渲染并沿用主题强调色 */
+/* 任务列表复选框：Tailwind preflight 把 input 的 appearance 置为 none，
+   这里统一画成「黑框 + 白底 + 黑色对号」的简洁方块（深色主题自动反色）。
+   对勾用 data URI 背景图实现——input 是替换元素，伪元素不可靠 */
 .markdown-preview input[type="checkbox"] {
-	appearance: auto;
-	-webkit-appearance: checkbox;
-	width: auto;
-	height: auto;
+	appearance: none;
+	-webkit-appearance: none;
+	flex: none;
+	width: 1.05em;
+	height: 1.05em;
 	margin: 0 0.5rem 0 0;
-	border: revert;
-	accent-color: var(--primary);
-	vertical-align: -0.15em;
-	cursor: pointer;
+	border: 1.5px solid var(--foreground);
+	border-radius: 4px;
+	background-color: var(--background);
+	background-repeat: no-repeat;
+	background-position: center;
+	background-size: 78%;
+	vertical-align: -0.16em;
+	cursor: default;
+}
+
+.markdown-preview input[type="checkbox"]:checked {
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2334322d' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E");
+}
+
+:root.dark .markdown-preview input[type="checkbox"]:checked {
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ededed' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E");
 }
 
 .markdown-preview a {
@@ -518,6 +541,13 @@ const V3_UI_CSS = `
 }
 
 .v3-pop-item .v3-label { white-space: nowrap; }
+
+/* 当前选中项：浅底 + 加粗。不使用单选点/对勾图标，只靠底色区分 */
+.v3-pop-item[aria-checked="true"] {
+	background-color: var(--accent);
+	color: var(--accent-foreground);
+	font-weight: 500;
+}
 
 /* ===== 滚动条：Windows/Chromium 默认滚动条在浅色下是粗黑条，这里统一改成细浅色 ===== */
 /* 适用于大纲正文、代码块、表格与公式的滚动容器，深浅色主题都靠 --muted-foreground 自适应 */
@@ -1011,6 +1041,19 @@ function buildFlatToc(headings: HeadingInfo[]): string {
 	return `<ol role="list" class="space-y-1">${items.join('')}</ol>`;
 }
 
+/**
+ * 清理旧版导出残留的复制按钮
+ *
+ * v1 时代的导出把 <button class="copy-code-button"> 直接写进了正文 HTML，
+ * 而现在复制按钮由页尾脚本在运行时注入。残留的空按钮既没有点击逻辑，
+ * 又会在代码块左下角显示成一个「假复制图标」，这里直接删掉。
+ * @param html 正文 HTML
+ * @returns 清理后的正文 HTML
+ */
+function stripLegacyCopyButtons(html: string): string {
+	return html.replace(/<button[^>]*class="[^"]*copy-code-button[^"]*"[^>]*>[\s\S]*?<\/button>/gi, '');
+}
+
 /** 表格包进横向滚动容器（与 v2 同样的做法：渲染不会产生嵌套 table，成对替换安全） */
 function wrapTables(html: string): string {
 	return html
@@ -1097,7 +1140,7 @@ export function buildV3Template(options: V3TemplateOptions): string {
 					<div class="flex-1 min-w-0 overflow-visible rounded-2xl border bg-card shadow-sm">
 						<div class="markdown-preview">
 							<article class="${articleClass}" data-v3-width data-wide="max-w-none" data-narrow="max-w-225">
-								${wrapTables(contentHtml)}
+								${wrapTables(stripLegacyCopyButtons(contentHtml))}
 							</article>
 						</div>
 					</div>

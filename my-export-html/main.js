@@ -887,7 +887,7 @@ var ICON_CHECK = lucide("lucide lucide-check size-4", '<path d="M20 6 9 17l-5-5"
 var BTN_GHOST = "inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all outline-none focus-visible:border-ring focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 min-touch-target size-9 hover:bg-accent/50 hover:text-foreground focus-visible:outline-none focus-visible:ring-0 rounded-xl";
 var BTN_SOLID = "inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 hover:bg-accent hover:text-accent-foreground min-touch-target size-9 rounded-xl transition-colors";
 var BTN_CODE = "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition-all outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 min-touch-target size-8 border border-border/70 bg-background/85 text-muted-foreground shadow-sm backdrop-blur hover:bg-background hover:text-foreground";
-var POP_ITEM = "relative flex select-none items-center py-1.5 pl-2 pr-2 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground rounded-lg cursor-pointer";
+var POP_ITEM = "v3-pop-item relative flex select-none items-center py-1.5 pl-2 pr-2 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground rounded-lg cursor-pointer";
 var TOC_LINK = "block rounded-r-md border-l-2 border-transparent px-2 py-1.5 text-sm transition-all duration-200 text-muted-foreground hover:bg-muted/50 hover:text-foreground";
 var SCHEMES = ["default", "green", "blue", "sky-blue", "purple", "orange", "rose", "teal"];
 var THEMES = ["system", "light", "dark"];
@@ -920,8 +920,17 @@ var V3_CONTENT_CSS = `
 	overflow-wrap: anywhere;
 }
 
-.markdown-preview > :first-child { margin-top: 0; }
-.markdown-preview > :last-child { margin-bottom: 0; }
+/* \u9996/\u672B\u5143\u7D20\u8D34\u8FB9\uFF1A\u6CE8\u610F\u4F5C\u7528\u57DF\u5FC5\u987B\u662F article \u7684\u76F4\u63A5\u5B50\u5143\u7D20\uFF0C
+   \u5199\u6210 .markdown-preview > :first-child \u53EA\u4F1A\u547D\u4E2D article \u672C\u8EAB\uFF0C
+   \u6B63\u6587\u9996\u6807\u9898\u7684 margin-top \u4F1A\u6B8B\u7559\uFF0C\u5BFC\u81F4\u5F00\u5934\u7A7A\u51FA\u4E00\u5927\u5757 */
+.markdown-preview article > :first-child { margin-top: 0; }
+.markdown-preview article > :last-child { margin-bottom: 0; }
+
+/* \u6B63\u6587\u5361\u7247\u4E0A\u7559\u767D\uFF1Apy-10(40px) \u6536\u5230 24px\uFF0C\u914D\u5408\u4E0A\u9762\u9996\u5143\u7D20\u5F52\u96F6\uFF0C
+   \u9876\u90E8\u7A7A\u767D\u4ECE 72px \u964D\u5230 24px\uFF08\u7EA6\u539F\u6765\u7684 1/3\uFF09 */
+.markdown-preview article {
+	padding-top: 1.5rem;
+}
 
 .markdown-preview h1,
 .markdown-preview h2,
@@ -1013,18 +1022,32 @@ var V3_CONTENT_CSS = `
 	padding-left: 0.25rem;
 }
 
-/* Tailwind preflight \u628A\u6240\u6709 input \u7684 appearance \u7F6E\u4E3A none\uFF0C
-   \u590D\u9009\u6846\u4F1A\u9000\u5316\u6210 0\xD70 \u7684\u65B9\u5757\uFF0C\u8FD9\u91CC\u6062\u590D\u539F\u751F\u6E32\u67D3\u5E76\u6CBF\u7528\u4E3B\u9898\u5F3A\u8C03\u8272 */
+/* \u4EFB\u52A1\u5217\u8868\u590D\u9009\u6846\uFF1ATailwind preflight \u628A input \u7684 appearance \u7F6E\u4E3A none\uFF0C
+   \u8FD9\u91CC\u7EDF\u4E00\u753B\u6210\u300C\u9ED1\u6846 + \u767D\u5E95 + \u9ED1\u8272\u5BF9\u53F7\u300D\u7684\u7B80\u6D01\u65B9\u5757\uFF08\u6DF1\u8272\u4E3B\u9898\u81EA\u52A8\u53CD\u8272\uFF09\u3002
+   \u5BF9\u52FE\u7528 data URI \u80CC\u666F\u56FE\u5B9E\u73B0\u2014\u2014input \u662F\u66FF\u6362\u5143\u7D20\uFF0C\u4F2A\u5143\u7D20\u4E0D\u53EF\u9760 */
 .markdown-preview input[type="checkbox"] {
-	appearance: auto;
-	-webkit-appearance: checkbox;
-	width: auto;
-	height: auto;
+	appearance: none;
+	-webkit-appearance: none;
+	flex: none;
+	width: 1.05em;
+	height: 1.05em;
 	margin: 0 0.5rem 0 0;
-	border: revert;
-	accent-color: var(--primary);
-	vertical-align: -0.15em;
-	cursor: pointer;
+	border: 1.5px solid var(--foreground);
+	border-radius: 4px;
+	background-color: var(--background);
+	background-repeat: no-repeat;
+	background-position: center;
+	background-size: 78%;
+	vertical-align: -0.16em;
+	cursor: default;
+}
+
+.markdown-preview input[type="checkbox"]:checked {
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2334322d' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E");
+}
+
+:root.dark .markdown-preview input[type="checkbox"]:checked {
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ededed' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E");
 }
 
 .markdown-preview a {
@@ -1288,6 +1311,13 @@ var V3_UI_CSS = `
 }
 
 .v3-pop-item .v3-label { white-space: nowrap; }
+
+/* \u5F53\u524D\u9009\u4E2D\u9879\uFF1A\u6D45\u5E95 + \u52A0\u7C97\u3002\u4E0D\u4F7F\u7528\u5355\u9009\u70B9/\u5BF9\u52FE\u56FE\u6807\uFF0C\u53EA\u9760\u5E95\u8272\u533A\u5206 */
+.v3-pop-item[aria-checked="true"] {
+	background-color: var(--accent);
+	color: var(--accent-foreground);
+	font-weight: 500;
+}
 
 /* ===== \u6EDA\u52A8\u6761\uFF1AWindows/Chromium \u9ED8\u8BA4\u6EDA\u52A8\u6761\u5728\u6D45\u8272\u4E0B\u662F\u7C97\u9ED1\u6761\uFF0C\u8FD9\u91CC\u7EDF\u4E00\u6539\u6210\u7EC6\u6D45\u8272 ===== */
 /* \u9002\u7528\u4E8E\u5927\u7EB2\u6B63\u6587\u3001\u4EE3\u7801\u5757\u3001\u8868\u683C\u4E0E\u516C\u5F0F\u7684\u6EDA\u52A8\u5BB9\u5668\uFF0C\u6DF1\u6D45\u8272\u4E3B\u9898\u90FD\u9760 --muted-foreground \u81EA\u9002\u5E94 */
@@ -1751,6 +1781,9 @@ function buildFlatToc(headings) {
   });
   return `<ol role="list" class="space-y-1">${items.join("")}</ol>`;
 }
+function stripLegacyCopyButtons(html) {
+  return html.replace(/<button[^>]*class="[^"]*copy-code-button[^"]*"[^>]*>[\s\S]*?<\/button>/gi, "");
+}
 function wrapTables(html) {
   return html.replace(/<table([^>]*)>/g, '<div class="my-4 overflow-x-auto"><table$1>').replace(/<\/table>/g, "</table></div>");
 }
@@ -1821,7 +1854,7 @@ function buildV3Template(options) {
 					<div class="flex-1 min-w-0 overflow-visible rounded-2xl border bg-card shadow-sm">
 						<div class="markdown-preview">
 							<article class="${articleClass}" data-v3-width data-wide="max-w-none" data-narrow="max-w-225">
-								${wrapTables(contentHtml)}
+								${wrapTables(stripLegacyCopyButtons(contentHtml))}
 							</article>
 						</div>
 					</div>
