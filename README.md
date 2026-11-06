@@ -46,6 +46,7 @@ v3 模板浅色窄屏模式（右侧大纲随滚动高亮当前章节）：
 
 ![v3 模板效果](docs/screenshots/v3-light.png)
 
+- [v3 模板演示](demo/demo-v3.html)（窄屏/手机视口下点顶栏目录按钮可查看悬浮目录）
 - [v2 模板演示](demo/demo-v2.html)（可用浏览器开发者工具切换到手机视口查看移动端效果）
 - [v1 模板演示](demo/demo.html)
 - 演示源文件：[demo/demo.md](demo/demo.md)

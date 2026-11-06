@@ -46,6 +46,7 @@ The v3 template in light mode with the default narrow layout (the outline on the
 
 ![v3 template](docs/screenshots/v3-light.png)
 
+- [v3 template demo](demo/demo-v3.html) (in a narrow/mobile viewport, click the outline button in the top bar to open the floating outline)
 - [v2 template demo](demo/demo-v2.html) (use your browser's device toolbar to see the mobile layout)
 - [v1 template demo](demo/demo.html)
 - Demo source: [demo/demo.md](demo/demo.md)
