@@ -14,6 +14,7 @@
  */
 
 /* 模板版本类型 TemplateVersion 已迁至 template-types.ts，由 main.ts 统一引用 */
+import { stripLegacyCopyButtons } from './html-utils';
 
 /**
  * v2 模板入参（共享逻辑由调用方处理：KaTeX 注入、TOC 生成等）
@@ -786,7 +787,18 @@ const INTERACTION_SCRIPT = `
 
 	document.querySelectorAll('.code-block-wrapper').forEach(function (block) {
 		var pre = block.querySelector('pre');
-		if (!pre || block.querySelector('.copy-code-button')) return;
+		if (!pre) return;
+
+		/* 空代码块没有可复制内容，且按钮会溢出矮框，直接跳过 */
+		var code = pre.querySelector('code');
+		var text = code ? code.textContent : '';
+		if (!text.trim()) return;
+
+		/* 旧版本导出可能残留一个没有点击逻辑的按钮，先清掉再注入自己的 */
+		var stale = block.querySelectorAll('.copy-code-button');
+		for (var s = 0; s < stale.length; s++) {
+			if (stale[s].parentNode) stale[s].parentNode.removeChild(stale[s]);
+		}
 
 		var button = document.createElement('button');
 		button.type = 'button';
@@ -796,9 +808,6 @@ const INTERACTION_SCRIPT = `
 		block.appendChild(button);
 
 		button.addEventListener('click', function () {
-			var code = pre.querySelector('code');
-			var text = code ? code.textContent : '';
-
 			function showCopied() {
 				button.innerHTML = CHECK_ICON;
 				button.classList.add('copied');
@@ -865,8 +874,9 @@ export function buildV2Template(options: V2TemplateOptions): string {
 		.replace(/"/g, '&quot;');
 
 	// 表格统一包进横向滚动容器：窄屏时不挤压列宽，改为左右滚动。
-	// Markdown 渲染不会产生嵌套 table，直接按标签替换成对包裹是安全的
-	const bodyHtml = contentHtml
+	// Markdown 渲染不会产生嵌套 table，直接按标签替换成对包裹是安全的。
+	// 同时清掉 Obsidian 注入的失效复制按钮，页面脚本会在运行时重新注入可用的按钮。
+	const bodyHtml = stripLegacyCopyButtons(contentHtml)
 		.replace(/<table([^>]*)>/g, '<div class="table-scroll"><table$1>')
 		.replace(/<\/table>/g, '</table></div>');
 

@@ -18,6 +18,7 @@
  */
 import { V3_THEME_CSS, V3_PREVIEW_CSS } from './template-v3-css';
 import type { HeadingInfo } from './template-types';
+import { stripLegacyCopyButtons } from './html-utils';
 
 /**
  * v3 模板入参
@@ -86,7 +87,7 @@ const BTN_CODE =
 
 /** 下拉菜单项（参考页 Radix 菜单项；按需求去掉左侧单选点与右侧对勾） */
 const POP_ITEM =
-	'v3-pop-item relative flex select-none items-center py-1.5 pl-2 pr-2 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground rounded-lg cursor-pointer';
+	'v3-pop-item relative flex w-full select-none items-center py-1.5 pl-2 pr-2 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground rounded-lg cursor-pointer';
 
 /** 大纲条目：普通态 */
 const TOC_LINK =
@@ -469,14 +470,16 @@ const V3_UI_CSS = `
 .code-block-wrapper .line-numbers {
 	flex: none;
 	overflow: hidden;
-	padding: 1rem 0.75rem 1rem 0;
+	/* 左右留一样的 padding + 居中，行号才在独立槽位居中；
+	   原来是右侧留白、文字靠右，视觉上贴着代码框左边 */
+	padding: 1rem 0.5rem;
 	border-right: 1px solid color-mix(in oklab, var(--border) 60%, transparent);
 	background: color-mix(in oklab, var(--muted) 70%, transparent);
 	color: var(--muted-foreground);
 	font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 	font-size: 0.875rem;
 	line-height: 1.5rem;
-	text-align: right;
+	text-align: center;
 	user-select: none;
 	pointer-events: none;
 }
@@ -902,6 +905,10 @@ const V3_SCRIPT = `
 			var pre = block.querySelector('pre');
 			if (!pre) return;
 
+			/* 空代码块没有可复制的内容；框只有一行高时按钮还会溢出边界，直接跳过 */
+			var code = pre.querySelector('code');
+			if (!code || !code.textContent.trim()) return;
+
 			var actions = document.createElement('div');
 			actions.className = 'v3-code-actions';
 
@@ -914,8 +921,7 @@ const V3_SCRIPT = `
 			button.setAttribute('aria-label', t('btn.copy'));
 
 			button.addEventListener('click', function () {
-				var code = pre.querySelector('code');
-				var text = code ? code.textContent : '';
+				var text = code.textContent;
 
 				function showCopied() {
 					button.innerHTML = CHECK_ICON;
@@ -1039,19 +1045,6 @@ function buildFlatToc(headings: HeadingInfo[]): string {
 	});
 
 	return `<ol role="list" class="space-y-1">${items.join('')}</ol>`;
-}
-
-/**
- * 清理旧版导出残留的复制按钮
- *
- * v1 时代的导出把 <button class="copy-code-button"> 直接写进了正文 HTML，
- * 而现在复制按钮由页尾脚本在运行时注入。残留的空按钮既没有点击逻辑，
- * 又会在代码块左下角显示成一个「假复制图标」，这里直接删掉。
- * @param html 正文 HTML
- * @returns 清理后的正文 HTML
- */
-function stripLegacyCopyButtons(html: string): string {
-	return html.replace(/<button[^>]*class="[^"]*copy-code-button[^"]*"[^>]*>[\s\S]*?<\/button>/gi, '');
 }
 
 /** 表格包进横向滚动容器（与 v2 同样的做法：渲染不会产生嵌套 table，成对替换安全） */

@@ -28,6 +28,11 @@ __export(exports, {
 });
 var import_obsidian = __toModule(require("obsidian"));
 
+// html-utils.ts
+function stripLegacyCopyButtons(html) {
+  return html.replace(/<button[^>]*class="[^"]*copy-code-button[^"]*"[^>]*>[\s\S]*?<\/button>/gi, "");
+}
+
 // template-v2.ts
 var V2_CSS = `
 :root {
@@ -772,7 +777,18 @@ var INTERACTION_SCRIPT = `
 
 	document.querySelectorAll('.code-block-wrapper').forEach(function (block) {
 		var pre = block.querySelector('pre');
-		if (!pre || block.querySelector('.copy-code-button')) return;
+		if (!pre) return;
+
+		/* \u7A7A\u4EE3\u7801\u5757\u6CA1\u6709\u53EF\u590D\u5236\u5185\u5BB9\uFF0C\u4E14\u6309\u94AE\u4F1A\u6EA2\u51FA\u77EE\u6846\uFF0C\u76F4\u63A5\u8DF3\u8FC7 */
+		var code = pre.querySelector('code');
+		var text = code ? code.textContent : '';
+		if (!text.trim()) return;
+
+		/* \u65E7\u7248\u672C\u5BFC\u51FA\u53EF\u80FD\u6B8B\u7559\u4E00\u4E2A\u6CA1\u6709\u70B9\u51FB\u903B\u8F91\u7684\u6309\u94AE\uFF0C\u5148\u6E05\u6389\u518D\u6CE8\u5165\u81EA\u5DF1\u7684 */
+		var stale = block.querySelectorAll('.copy-code-button');
+		for (var s = 0; s < stale.length; s++) {
+			if (stale[s].parentNode) stale[s].parentNode.removeChild(stale[s]);
+		}
 
 		var button = document.createElement('button');
 		button.type = 'button';
@@ -782,9 +798,6 @@ var INTERACTION_SCRIPT = `
 		block.appendChild(button);
 
 		button.addEventListener('click', function () {
-			var code = pre.querySelector('code');
-			var text = code ? code.textContent : '';
-
 			function showCopied() {
 				button.innerHTML = CHECK_ICON;
 				button.classList.add('copied');
@@ -831,7 +844,7 @@ var ICON_SUN = `<svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" v
 function buildV2Template(options) {
   const { title, tocHtml, contentHtml, mathCss, mathScript } = options;
   const safeTitle = title.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-  const bodyHtml = contentHtml.replace(/<table([^>]*)>/g, '<div class="table-scroll"><table$1>').replace(/<\/table>/g, "</table></div>");
+  const bodyHtml = stripLegacyCopyButtons(contentHtml).replace(/<table([^>]*)>/g, '<div class="table-scroll"><table$1>').replace(/<\/table>/g, "</table></div>");
   return `<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -887,7 +900,7 @@ var ICON_CHECK = lucide("lucide lucide-check size-4", '<path d="M20 6 9 17l-5-5"
 var BTN_GHOST = "inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all outline-none focus-visible:border-ring focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 min-touch-target size-9 hover:bg-accent/50 hover:text-foreground focus-visible:outline-none focus-visible:ring-0 rounded-xl";
 var BTN_SOLID = "inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 hover:bg-accent hover:text-accent-foreground min-touch-target size-9 rounded-xl transition-colors";
 var BTN_CODE = "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition-all outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 min-touch-target size-8 border border-border/70 bg-background/85 text-muted-foreground shadow-sm backdrop-blur hover:bg-background hover:text-foreground";
-var POP_ITEM = "v3-pop-item relative flex select-none items-center py-1.5 pl-2 pr-2 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground rounded-lg cursor-pointer";
+var POP_ITEM = "v3-pop-item relative flex w-full select-none items-center py-1.5 pl-2 pr-2 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground rounded-lg cursor-pointer";
 var TOC_LINK = "block rounded-r-md border-l-2 border-transparent px-2 py-1.5 text-sm transition-all duration-200 text-muted-foreground hover:bg-muted/50 hover:text-foreground";
 var SCHEMES = ["default", "green", "blue", "sky-blue", "purple", "orange", "rose", "teal"];
 var THEMES = ["system", "light", "dark"];
@@ -1239,14 +1252,16 @@ var V3_UI_CSS = `
 .code-block-wrapper .line-numbers {
 	flex: none;
 	overflow: hidden;
-	padding: 1rem 0.75rem 1rem 0;
+	/* \u5DE6\u53F3\u7559\u4E00\u6837\u7684 padding + \u5C45\u4E2D\uFF0C\u884C\u53F7\u624D\u5728\u72EC\u7ACB\u69FD\u4F4D\u5C45\u4E2D\uFF1B
+	   \u539F\u6765\u662F\u53F3\u4FA7\u7559\u767D\u3001\u6587\u5B57\u9760\u53F3\uFF0C\u89C6\u89C9\u4E0A\u8D34\u7740\u4EE3\u7801\u6846\u5DE6\u8FB9 */
+	padding: 1rem 0.5rem;
 	border-right: 1px solid color-mix(in oklab, var(--border) 60%, transparent);
 	background: color-mix(in oklab, var(--muted) 70%, transparent);
 	color: var(--muted-foreground);
 	font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 	font-size: 0.875rem;
 	line-height: 1.5rem;
-	text-align: right;
+	text-align: center;
 	user-select: none;
 	pointer-events: none;
 }
@@ -1663,6 +1678,10 @@ var V3_SCRIPT = `
 			var pre = block.querySelector('pre');
 			if (!pre) return;
 
+			/* \u7A7A\u4EE3\u7801\u5757\u6CA1\u6709\u53EF\u590D\u5236\u7684\u5185\u5BB9\uFF1B\u6846\u53EA\u6709\u4E00\u884C\u9AD8\u65F6\u6309\u94AE\u8FD8\u4F1A\u6EA2\u51FA\u8FB9\u754C\uFF0C\u76F4\u63A5\u8DF3\u8FC7 */
+			var code = pre.querySelector('code');
+			if (!code || !code.textContent.trim()) return;
+
 			var actions = document.createElement('div');
 			actions.className = 'v3-code-actions';
 
@@ -1675,8 +1694,7 @@ var V3_SCRIPT = `
 			button.setAttribute('aria-label', t('btn.copy'));
 
 			button.addEventListener('click', function () {
-				var code = pre.querySelector('code');
-				var text = code ? code.textContent : '';
+				var text = code.textContent;
 
 				function showCopied() {
 					button.innerHTML = CHECK_ICON;
@@ -1780,9 +1798,6 @@ function buildFlatToc(headings) {
     return `<li><a href="#${encodeURIComponent(heading.id)}" class="${TOC_LINK}" style="padding-left: ${paddingLeft}px">${escapeHtml(heading.text)}</a></li>`;
   });
   return `<ol role="list" class="space-y-1">${items.join("")}</ol>`;
-}
-function stripLegacyCopyButtons(html) {
-  return html.replace(/<button[^>]*class="[^"]*copy-code-button[^"]*"[^>]*>[\s\S]*?<\/button>/gi, "");
 }
 function wrapTables(html) {
   return html.replace(/<table([^>]*)>/g, '<div class="my-4 overflow-x-auto"><table$1>').replace(/<\/table>/g, "</table></div>");
