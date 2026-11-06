@@ -300,10 +300,14 @@ img {
 	height: auto;
 	border-radius: 8px;
 	margin: 0.25em 0 1.5em;
+	/* 与 v1 同强度的投影：白底图片在页面上的边缘可辨识 */
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 :root[data-theme="dark"] img {
 	filter: brightness(0.92);
+	/* 深色主题阴影加深，防止深色图片融入背景 */
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
 }
 
 hr {
@@ -330,6 +334,7 @@ th {
 	font-weight: 650;
 	border-bottom: 2px solid var(--border);
 	color: var(--text-soft);
+	background: var(--bg-soft);
 }
 
 tbody tr:last-child td {
@@ -626,6 +631,10 @@ body.toc-resizing {
 	.table-scroll {
 		overflow: visible;
 		margin-bottom: 1.75em;
+	}
+
+	img {
+		box-shadow: none;
 	}
 
 	.code-block-wrapper {

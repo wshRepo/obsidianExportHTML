@@ -316,10 +316,14 @@ img {
 	height: auto;
 	border-radius: 8px;
 	margin: 0.25em 0 1.5em;
+	/* \u4E0E v1 \u540C\u5F3A\u5EA6\u7684\u6295\u5F71\uFF1A\u767D\u5E95\u56FE\u7247\u5728\u9875\u9762\u4E0A\u7684\u8FB9\u7F18\u53EF\u8FA8\u8BC6 */
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 :root[data-theme="dark"] img {
 	filter: brightness(0.92);
+	/* \u6DF1\u8272\u4E3B\u9898\u9634\u5F71\u52A0\u6DF1\uFF0C\u9632\u6B62\u6DF1\u8272\u56FE\u7247\u878D\u5165\u80CC\u666F */
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
 }
 
 hr {
@@ -346,6 +350,7 @@ th {
 	font-weight: 650;
 	border-bottom: 2px solid var(--border);
 	color: var(--text-soft);
+	background: var(--bg-soft);
 }
 
 tbody tr:last-child td {
@@ -642,6 +647,10 @@ body.toc-resizing {
 	.table-scroll {
 		overflow: visible;
 		margin-bottom: 1.75em;
+	}
+
+	img {
+		box-shadow: none;
 	}
 
 	.code-block-wrapper {
