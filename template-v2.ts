@@ -54,6 +54,7 @@ const V2_CSS = `
 	--selection: rgba(90, 79, 208, 0.22);
 	--code-bg: #f6f6f8;
 	--scrim: rgba(20, 21, 26, 0.45);
+	--toc-width: 264px;
 	--font-sans: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
 	--font-mono: "SF Mono", "JetBrains Mono", Consolas, "Liberation Mono", "Courier New", monospace;
 }
@@ -409,7 +410,7 @@ th, td {
 	left: 0;
 	top: 0;
 	bottom: 0;
-	width: 264px;
+	width: var(--toc-width);
 	padding: 1.5rem 0.9rem;
 	background: var(--bg-soft);
 	border-right: 1px solid var(--border);
@@ -484,17 +485,55 @@ th, td {
 	z-index: 30;
 }
 
-/* ===== 页面布局：侧栏 + 可读列宽 =====
- * 列宽主动放宽到 56rem：目标场景是 SOP / 技术文档，
- * 表格与代码块更需要横向空间，单纯散文场景由 h2 分节弥补行长 */
+/* ===== 拖拽分隔条：与目录宽度共用 --toc-width 变量 ===== */
+.resize-handle {
+	position: fixed;
+	top: 0;
+	bottom: 0;
+	left: calc(var(--toc-width) - 4px);
+	width: 8px;
+	cursor: col-resize;
+	touch-action: none;
+	z-index: 55;
+}
+
+.resize-handle::after {
+	content: '';
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	width: 3px;
+	height: 44px;
+	border-radius: 2px;
+	background: var(--border-strong);
+	transition: background 0.15s ease;
+}
+
+.resize-handle:hover::after,
+.resize-handle.dragging::after {
+	background: var(--accent);
+}
+
+.resize-handle:hover {
+	background: var(--accent-soft);
+}
+
+/* 拖拽过程中禁用文本选择，光标保持列调整形态 */
+body.toc-resizing {
+	cursor: col-resize;
+	user-select: none;
+}
+
+/* ===== 页面布局：侧栏 + 正文满宽 =====
+ * 正文不限最大宽度，按目标场景（SOP / 技术文档，表格密集）
+ * 充分利用页面宽度，仅给呼吸边距 */
 .page {
-	margin-left: 264px;
+	margin-left: var(--toc-width);
 }
 
 .prose {
-	max-width: 56rem;
-	margin: 0 auto;
-	padding: 3.5rem 1.5rem 6rem;
+	padding: 3.5rem 3rem 6rem;
 }
 
 .prose > :last-child {
@@ -513,6 +552,11 @@ th, td {
 
 	.toc-toggle {
 		display: flex;
+	}
+
+	/* 抽屉模式下不需要拖拽分隔条 */
+	.resize-handle {
+		display: none;
 	}
 
 	.toc-panel {
@@ -564,6 +608,7 @@ th, td {
 	.toc-toggle,
 	.theme-toggle,
 	.toc-overlay,
+	.resize-handle,
 	.copy-code-button {
 		display: none !important;
 	}
@@ -645,6 +690,32 @@ const INTERACTION_SCRIPT = `
 			}
 		});
 	} catch (e) {}
+
+	/* —— 桌面端目录宽度拖拽（与 v1 行为一致，范围 200–600px） ——
+	 * 通过修改 --toc-width 变量一次驱动目录、正文偏移与把手位置 */
+	var handle = document.querySelector('.resize-handle');
+	if (handle && window.matchMedia('(hover: hover)').matches) {
+		var root = document.documentElement;
+		var resizing = false;
+
+		handle.addEventListener('mousedown', function (e) {
+			e.preventDefault();
+			resizing = true;
+			document.body.classList.add('toc-resizing');
+		});
+
+		document.addEventListener('mousemove', function (e) {
+			if (!resizing) return;
+			var width = Math.min(600, Math.max(200, e.clientX));
+			root.style.setProperty('--toc-width', width + 'px');
+		});
+
+		document.addEventListener('mouseup', function () {
+			if (!resizing) return;
+			resizing = false;
+			document.body.classList.remove('toc-resizing');
+		});
+	}
 
 	/* —— 移动端目录抽屉 —— */
 	var body = document.body;
@@ -803,6 +874,7 @@ export function buildV2Template(options: V2TemplateOptions): string {
 		<div class="toc-title">${safeTitle}</div>
 		${tocHtml}
 	</aside>
+	<div class="resize-handle" aria-hidden="true"></div>
 	<button type="button" class="toc-toggle" aria-label="打开目录" aria-controls="toc">${ICON_TOC}</button>
 	<button type="button" class="theme-toggle" aria-label="切换浅色/深色主题">
 		<span class="icon-moon">${ICON_MOON}</span>
