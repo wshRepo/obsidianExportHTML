@@ -1,5 +1,6 @@
 import { App, Notice, Plugin, PluginSettingTab, Setting, TFile, Menu, FileSystemAdapter, MarkdownRenderer } from 'obsidian';
 import { KATEX_JS_BASE64, KATEX_CSS_BASE64 } from './katex-constants';
+import { buildV2Template, TemplateVersion } from './template-v2';
 
 /**
  * 专业简洁的文档样式
@@ -586,6 +587,8 @@ table tr:hover {
 interface ExportHTMLPluginSettings {
 	autoOpenFolder: boolean;
 	exportPath: string;
+	/** 导出使用的 HTML 模板版本，v2 为带双主题与移动端适配的新版样式 */
+	templateVersion: TemplateVersion;
 }
 
 /**
@@ -593,7 +596,9 @@ interface ExportHTMLPluginSettings {
  */
 const DEFAULT_SETTINGS: ExportHTMLPluginSettings = {
 	autoOpenFolder: true,
-	exportPath: ''
+	exportPath: '',
+	/** 默认保持 v1，老用户升级后导出效果不变 */
+	templateVersion: 'v1'
 };
 
 /**
@@ -644,6 +649,26 @@ const TRANSLATIONS: { [key: string]: { [lang: string]: string } } = {
 		'zh-CN': '导出成功后自动打开包含导出 HTML 文件的文件夹',
 		'zh': '导出成功后自动打开包含导出 HTML 文件的文件夹',
 		en: 'Automatically open the folder containing the exported HTML file after successful export'
+	},
+	'HTML template': {
+		'zh-CN': 'HTML 模板',
+		'zh': 'HTML 模板',
+		en: 'HTML template'
+	},
+	'Choose the HTML template used for export. v1 is the classic style; v2 refreshes it with light/dark themes and mobile-friendly reading.': {
+		'zh-CN': '导出使用的 HTML 模板。v1 为经典样式；v2 优化了排版，支持浅色/深色主题与手机友好阅读。',
+		'zh': '导出使用的 HTML 模板。v1 为经典样式；v2 优化了排版，支持浅色/深色主题与手机友好阅读。',
+		en: 'Choose the HTML template used for export. v1 is the classic style; v2 refreshes it with light/dark themes and mobile-friendly reading.'
+	},
+	'Classic (v1)': {
+		'zh-CN': '经典（v1）',
+		'zh': '经典（v1）',
+		en: 'Classic (v1)'
+	},
+	'Refreshed (v2)': {
+		'zh-CN': '焕新（v2）',
+		'zh': '焕新（v2）',
+		en: 'Refreshed (v2)'
 	}
 };
 
@@ -999,11 +1024,22 @@ window.addEventListener('DOMContentLoaded', function() {
 });
 </script>` : '';
 
+		// v2 模板：独立的排版外壳（浅色/深色主题 + 移动端抽屉目录），
+		// 复用上文已生成的 TOC、 KaTeX 注入与正文 HTML，v1 路径完全不受影响
+		if (this.settings.templateVersion === 'v2') {
+			return buildV2Template({
+				title: documentTitle,
+				tocHtml: this.generateNestedTOC(headingsData),
+				contentHtml: html,
+				mathCss: mathJaxCSS,
+				mathScript: mathJaxScript
+			});
+		}
+
 		const copyScript = `
 <script>
 document.addEventListener('DOMContentLoaded', function() {
 	const copyButtons = document.querySelectorAll('.copy-code-button');
-	
 	copyButtons.forEach(button => {
 		button.addEventListener('click', function(e) {
 			e.preventDefault();
@@ -1557,6 +1593,21 @@ class ExportHTMLSettingTab extends PluginSettingTab {
 		const { containerEl } = this;
 
 		containerEl.empty();
+
+		new Setting(containerEl)
+			.setName(this.plugin.translate('HTML template'))
+			.setDesc(this.plugin.translate('Choose the HTML template used for export. v1 is the classic style; v2 refreshes it with light/dark themes and mobile-friendly reading.'))
+			.addDropdown(dropdown => dropdown
+				.addOption('v1', this.plugin.translate('Classic (v1)'))
+				.addOption('v2', this.plugin.translate('Refreshed (v2)'))
+				.setValue(this.plugin.settings.templateVersion)
+				.onChange(async (value: string) => {
+					// 只接受合法值，防止旧配置里出现意外的字符串
+					if (value === 'v1' || value === 'v2') {
+						this.plugin.settings.templateVersion = value;
+						await this.plugin.saveSettings();
+					}
+				}));
 
 		new Setting(containerEl)
 			.setName(this.plugin.translate('Auto-open folder after export'))
