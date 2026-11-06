@@ -13,8 +13,7 @@
  * - 代码块固定显示行号，只保留复制按钮，不引入语法高亮；
  * - 下拉菜单去掉左侧单选点与右侧对勾，只留色块与文字；
  * - 默认浅色、默认窄屏（顶栏可手动切宽屏）；
- * - 大纲在窄屏改为堆叠在正文上方（参考页直接隐藏，会出现按钮点了没反应的问题），
- *   并限制高度 + 优化滚动条，避免长目录在手机上占满整屏。
+ * - 窄屏下大纲默认隐藏，点顶栏目录按钮弹出悬浮面板（参考页直接隐藏，按钮会点了没反应）。
  */
 import { V3_THEME_CSS, V3_PREVIEW_CSS } from './template-v3-css';
 import type { HeadingInfo } from './template-types';
@@ -615,13 +614,48 @@ const V3_UI_CSS = `
 	background: transparent;
 }
 
-/* ===== 窄屏：参考页直接隐藏大纲，这里改为堆叠在正文上方，避免按钮失效 ===== */
+/* 桌面端：大纲默认显示，按钮可隐藏（状态记忆在 localStorage） */
+body.v3-toc-hidden .v3-toc {
+	display: none;
+}
+
+/* ===== 窄屏：目录默认隐藏，点按钮弹出悬浮面板（不挤压正文） ===== */
 @media (max-width: 1023px) {
 	.v3-toc {
-		position: static;
-		width: 100%;
-		/* 限高：25 条目录在手机上不能占满整屏，超出部分在面板内部滚动 */
-		max-height: 45vh;
+		position: fixed;
+		/* 顶栏约 65px，留 7px 间隙；底部留 24px，避免贴住屏幕边缘 */
+		top: 4.5rem;
+		left: 0.75rem;
+		right: 0.75rem;
+		width: auto;
+		max-height: calc(100vh - 6rem);
+		z-index: 30;
+		/* 默认隐藏：手机阅读时目录不占正文空间 */
+		display: none;
+		box-shadow: 0 12px 32px rgb(0 0 0 / 0.18);
+	}
+
+	/* 后面的规则与 body.v3-toc-hidden 同权重，靠顺序保证抽屉能打开 */
+	body.v3-toc-open .v3-toc {
+		display: flex;
+	}
+
+	/* 抽屉打开时锁住背景滚动，避免滑动穿透 */
+	body.v3-toc-open {
+		overflow: hidden;
+	}
+
+	.v3-toc-backdrop {
+		position: fixed;
+		inset: 0;
+		z-index: 10;
+		background: rgb(0 0 0 / 0.28);
+		-webkit-backdrop-filter: blur(1px);
+		backdrop-filter: blur(1px);
+	}
+
+	.v3-toc-backdrop:not([hidden]) {
+		display: block;
 	}
 
 	/* items-start 在 flex-col 下会按内容给卡片定宽，宽表格会把卡片撑出屏幕，
@@ -631,7 +665,8 @@ const V3_UI_CSS = `
 	}
 }
 
-body.v3-toc-hidden .v3-toc {
+/* 非手机端不显示遮罩，防止状态残留时盖住页面 */
+.v3-toc-backdrop {
 	display: none;
 }
 
@@ -758,21 +793,81 @@ const V3_SCRIPT = `
 	}
 	applyWidth(read('export-html-v3-width') === 'true');
 
-	/* —— 大纲显隐 —— */
+	/* —— 大纲：桌面侧栏可隐藏；手机默认隐藏，点按钮弹出悬浮面板 —— */
 	var tocBtn = document.querySelector('[data-v3-toc-btn]');
+	var tocBackdrop = document.querySelector('[data-v3-toc-backdrop]');
+	var mobileToc = window.matchMedia ? window.matchMedia('(max-width: 1023px)') : null;
+
+	function isMobileToc() {
+		return mobileToc ? mobileToc.matches : window.innerWidth < 1024;
+	}
+
+	function setTocBtnState(active) {
+		if (!tocBtn) return;
+		tocBtn.classList.toggle('bg-primary/10', active);
+		tocBtn.classList.toggle('text-primary', active);
+		tocBtn.setAttribute('aria-expanded', active ? 'true' : 'false');
+	}
+
+	function isTocDrawerOpen() {
+		return document.body.classList.contains('v3-toc-open');
+	}
+
+	function openTocDrawer() {
+		document.body.classList.add('v3-toc-open');
+		if (tocBackdrop) tocBackdrop.hidden = false;
+		setTocBtnState(true);
+	}
+
+	function closeTocDrawer() {
+		document.body.classList.remove('v3-toc-open');
+		if (tocBackdrop) tocBackdrop.hidden = true;
+		if (isMobileToc()) setTocBtnState(false);
+	}
+
+	/* 桌面端沿用上次的显隐选择 */
+	function applyDesktopTocState() {
+		var hidden = read('export-html-v3-toc') === 'false';
+		document.body.classList.toggle('v3-toc-hidden', hidden);
+		setTocBtnState(!hidden);
+	}
+
 	if (tocBtn) {
 		tocBtn.addEventListener('click', function () {
+			if (isMobileToc()) {
+				if (isTocDrawerOpen()) closeTocDrawer();
+				else openTocDrawer();
+				return;
+			}
 			var hidden = document.body.classList.toggle('v3-toc-hidden');
-			tocBtn.classList.toggle('bg-primary/10', !hidden);
-			tocBtn.classList.toggle('text-primary', !hidden);
+			setTocBtnState(!hidden);
 			write('export-html-v3-toc', hidden ? 'false' : 'true');
 		});
 	}
-	if (read('export-html-v3-toc') === 'false') {
-		document.body.classList.add('v3-toc-hidden');
-		if (tocBtn) {
-			tocBtn.classList.remove('bg-primary/10', 'text-primary');
-		}
+
+	if (tocBackdrop) {
+		tocBackdrop.addEventListener('click', closeTocDrawer);
+	}
+
+	document.addEventListener('keydown', function (e) {
+		if (e.key === 'Escape' && isTocDrawerOpen()) closeTocDrawer();
+	});
+
+	/* 手机首次进入一律收起，不记忆抽屉状态；桌面恢复上次选择 */
+	if (isMobileToc()) {
+		closeTocDrawer();
+	} else {
+		applyDesktopTocState();
+	}
+
+	function handleTocBreakpoint() {
+		closeTocDrawer();
+		if (!isMobileToc()) applyDesktopTocState();
+	}
+
+	if (mobileToc) {
+		if (mobileToc.addEventListener) mobileToc.addEventListener('change', handleTocBreakpoint);
+		else if (mobileToc.addListener) mobileToc.addListener(handleTocBreakpoint);
 	}
 
 	/* —— 主题：默认浅色 —— */
@@ -967,6 +1062,12 @@ const V3_SCRIPT = `
 
 	/* —— 大纲滚动高亮 —— */
 	var tocLinks = Array.prototype.slice.call(document.querySelectorAll('.v3-toc a[href^="#"]'));
+	/* 手机上点击目录项跳转后立即收起悬浮面板 */
+	for (var tli = 0; tli < tocLinks.length; tli++) {
+		tocLinks[tli].addEventListener('click', function () {
+			if (isMobileToc()) closeTocDrawer();
+		});
+	}
 	if (tocLinks.length > 0) {
 		var linkById = {};
 		for (var q = 0; q < tocLinks.length; q++) {
@@ -1122,12 +1223,13 @@ export function buildV3Template(options: V3TemplateOptions): string {
 							<button type="button" class="${BTN_GHOST}" data-v3-menu="theme" aria-haspopup="menu" aria-expanded="false" data-i18n-title="btn.theme">${ICON_THEME}</button>
 							<div class="v3-pop" role="menu" data-v3-pop="theme" hidden>${buildThemeItems()}</div>
 						</div>
-						<div class="inline-flex items-center">
-							<button type="button" class="${BTN_SOLID} bg-primary/10 text-primary" data-v3-toc-btn data-i18n-title="btn.toc">${ICON_LIST}</button>
-						</div>
+						${tocHtml ? `<div class="inline-flex items-center">
+							<button type="button" class="${BTN_SOLID} bg-primary/10 text-primary" data-v3-toc-btn aria-controls="v3-toc" aria-expanded="true" data-i18n-title="btn.toc">${ICON_LIST}</button>
+						</div>` : ''}
 					</div>
 				</div>
 			</header>
+			<div class="v3-toc-backdrop" data-v3-toc-backdrop hidden></div>
 			<main class="flex-1 overflow-visible p-4 sm:p-6 lg:p-8">
 				<div class="mx-auto flex flex-col lg:flex-row items-start gap-4 overflow-visible transition-all duration-300 max-w-5xl v3-main-box" data-v3-width data-wide="max-w-none" data-narrow="max-w-5xl">
 					<div class="flex-1 min-w-0 overflow-visible rounded-2xl border bg-card shadow-sm">
@@ -1137,7 +1239,7 @@ export function buildV3Template(options: V3TemplateOptions): string {
 							</article>
 						</div>
 					</div>
-					${tocHtml ? `<nav class="v3-toc border border-border bg-card rounded-xl flex flex-col h-fit max-h-[calc(100vh-102px)] overflow-hidden shrink-0 w-60 sticky top-20" aria-label="Outline">
+					${tocHtml ? `<nav id="v3-toc" class="v3-toc border border-border bg-card rounded-xl flex flex-col h-fit max-h-[calc(100vh-102px)] overflow-hidden shrink-0 w-60 sticky top-20" aria-label="Outline">
 						<div class="sticky top-0 border-b bg-card px-4 py-3 flex items-center justify-between z-10">
 							<h3 class="text-sm font-semibold" data-i18n="toc.title">${escapeHtml(I18N['toc.title'].en)}</h3>
 						</div>

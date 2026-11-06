@@ -1397,13 +1397,48 @@ var V3_UI_CSS = `
 	background: transparent;
 }
 
-/* ===== \u7A84\u5C4F\uFF1A\u53C2\u8003\u9875\u76F4\u63A5\u9690\u85CF\u5927\u7EB2\uFF0C\u8FD9\u91CC\u6539\u4E3A\u5806\u53E0\u5728\u6B63\u6587\u4E0A\u65B9\uFF0C\u907F\u514D\u6309\u94AE\u5931\u6548 ===== */
+/* \u684C\u9762\u7AEF\uFF1A\u5927\u7EB2\u9ED8\u8BA4\u663E\u793A\uFF0C\u6309\u94AE\u53EF\u9690\u85CF\uFF08\u72B6\u6001\u8BB0\u5FC6\u5728 localStorage\uFF09 */
+body.v3-toc-hidden .v3-toc {
+	display: none;
+}
+
+/* ===== \u7A84\u5C4F\uFF1A\u76EE\u5F55\u9ED8\u8BA4\u9690\u85CF\uFF0C\u70B9\u6309\u94AE\u5F39\u51FA\u60AC\u6D6E\u9762\u677F\uFF08\u4E0D\u6324\u538B\u6B63\u6587\uFF09 ===== */
 @media (max-width: 1023px) {
 	.v3-toc {
-		position: static;
-		width: 100%;
-		/* \u9650\u9AD8\uFF1A25 \u6761\u76EE\u5F55\u5728\u624B\u673A\u4E0A\u4E0D\u80FD\u5360\u6EE1\u6574\u5C4F\uFF0C\u8D85\u51FA\u90E8\u5206\u5728\u9762\u677F\u5185\u90E8\u6EDA\u52A8 */
-		max-height: 45vh;
+		position: fixed;
+		/* \u9876\u680F\u7EA6 65px\uFF0C\u7559 7px \u95F4\u9699\uFF1B\u5E95\u90E8\u7559 24px\uFF0C\u907F\u514D\u8D34\u4F4F\u5C4F\u5E55\u8FB9\u7F18 */
+		top: 4.5rem;
+		left: 0.75rem;
+		right: 0.75rem;
+		width: auto;
+		max-height: calc(100vh - 6rem);
+		z-index: 30;
+		/* \u9ED8\u8BA4\u9690\u85CF\uFF1A\u624B\u673A\u9605\u8BFB\u65F6\u76EE\u5F55\u4E0D\u5360\u6B63\u6587\u7A7A\u95F4 */
+		display: none;
+		box-shadow: 0 12px 32px rgb(0 0 0 / 0.18);
+	}
+
+	/* \u540E\u9762\u7684\u89C4\u5219\u4E0E body.v3-toc-hidden \u540C\u6743\u91CD\uFF0C\u9760\u987A\u5E8F\u4FDD\u8BC1\u62BD\u5C49\u80FD\u6253\u5F00 */
+	body.v3-toc-open .v3-toc {
+		display: flex;
+	}
+
+	/* \u62BD\u5C49\u6253\u5F00\u65F6\u9501\u4F4F\u80CC\u666F\u6EDA\u52A8\uFF0C\u907F\u514D\u6ED1\u52A8\u7A7F\u900F */
+	body.v3-toc-open {
+		overflow: hidden;
+	}
+
+	.v3-toc-backdrop {
+		position: fixed;
+		inset: 0;
+		z-index: 10;
+		background: rgb(0 0 0 / 0.28);
+		-webkit-backdrop-filter: blur(1px);
+		backdrop-filter: blur(1px);
+	}
+
+	.v3-toc-backdrop:not([hidden]) {
+		display: block;
 	}
 
 	/* items-start \u5728 flex-col \u4E0B\u4F1A\u6309\u5185\u5BB9\u7ED9\u5361\u7247\u5B9A\u5BBD\uFF0C\u5BBD\u8868\u683C\u4F1A\u628A\u5361\u7247\u6491\u51FA\u5C4F\u5E55\uFF0C
@@ -1413,7 +1448,8 @@ var V3_UI_CSS = `
 	}
 }
 
-body.v3-toc-hidden .v3-toc {
+/* \u975E\u624B\u673A\u7AEF\u4E0D\u663E\u793A\u906E\u7F69\uFF0C\u9632\u6B62\u72B6\u6001\u6B8B\u7559\u65F6\u76D6\u4F4F\u9875\u9762 */
+.v3-toc-backdrop {
 	display: none;
 }
 
@@ -1531,21 +1567,81 @@ var V3_SCRIPT = `
 	}
 	applyWidth(read('export-html-v3-width') === 'true');
 
-	/* \u2014\u2014 \u5927\u7EB2\u663E\u9690 \u2014\u2014 */
+	/* \u2014\u2014 \u5927\u7EB2\uFF1A\u684C\u9762\u4FA7\u680F\u53EF\u9690\u85CF\uFF1B\u624B\u673A\u9ED8\u8BA4\u9690\u85CF\uFF0C\u70B9\u6309\u94AE\u5F39\u51FA\u60AC\u6D6E\u9762\u677F \u2014\u2014 */
 	var tocBtn = document.querySelector('[data-v3-toc-btn]');
+	var tocBackdrop = document.querySelector('[data-v3-toc-backdrop]');
+	var mobileToc = window.matchMedia ? window.matchMedia('(max-width: 1023px)') : null;
+
+	function isMobileToc() {
+		return mobileToc ? mobileToc.matches : window.innerWidth < 1024;
+	}
+
+	function setTocBtnState(active) {
+		if (!tocBtn) return;
+		tocBtn.classList.toggle('bg-primary/10', active);
+		tocBtn.classList.toggle('text-primary', active);
+		tocBtn.setAttribute('aria-expanded', active ? 'true' : 'false');
+	}
+
+	function isTocDrawerOpen() {
+		return document.body.classList.contains('v3-toc-open');
+	}
+
+	function openTocDrawer() {
+		document.body.classList.add('v3-toc-open');
+		if (tocBackdrop) tocBackdrop.hidden = false;
+		setTocBtnState(true);
+	}
+
+	function closeTocDrawer() {
+		document.body.classList.remove('v3-toc-open');
+		if (tocBackdrop) tocBackdrop.hidden = true;
+		if (isMobileToc()) setTocBtnState(false);
+	}
+
+	/* \u684C\u9762\u7AEF\u6CBF\u7528\u4E0A\u6B21\u7684\u663E\u9690\u9009\u62E9 */
+	function applyDesktopTocState() {
+		var hidden = read('export-html-v3-toc') === 'false';
+		document.body.classList.toggle('v3-toc-hidden', hidden);
+		setTocBtnState(!hidden);
+	}
+
 	if (tocBtn) {
 		tocBtn.addEventListener('click', function () {
+			if (isMobileToc()) {
+				if (isTocDrawerOpen()) closeTocDrawer();
+				else openTocDrawer();
+				return;
+			}
 			var hidden = document.body.classList.toggle('v3-toc-hidden');
-			tocBtn.classList.toggle('bg-primary/10', !hidden);
-			tocBtn.classList.toggle('text-primary', !hidden);
+			setTocBtnState(!hidden);
 			write('export-html-v3-toc', hidden ? 'false' : 'true');
 		});
 	}
-	if (read('export-html-v3-toc') === 'false') {
-		document.body.classList.add('v3-toc-hidden');
-		if (tocBtn) {
-			tocBtn.classList.remove('bg-primary/10', 'text-primary');
-		}
+
+	if (tocBackdrop) {
+		tocBackdrop.addEventListener('click', closeTocDrawer);
+	}
+
+	document.addEventListener('keydown', function (e) {
+		if (e.key === 'Escape' && isTocDrawerOpen()) closeTocDrawer();
+	});
+
+	/* \u624B\u673A\u9996\u6B21\u8FDB\u5165\u4E00\u5F8B\u6536\u8D77\uFF0C\u4E0D\u8BB0\u5FC6\u62BD\u5C49\u72B6\u6001\uFF1B\u684C\u9762\u6062\u590D\u4E0A\u6B21\u9009\u62E9 */
+	if (isMobileToc()) {
+		closeTocDrawer();
+	} else {
+		applyDesktopTocState();
+	}
+
+	function handleTocBreakpoint() {
+		closeTocDrawer();
+		if (!isMobileToc()) applyDesktopTocState();
+	}
+
+	if (mobileToc) {
+		if (mobileToc.addEventListener) mobileToc.addEventListener('change', handleTocBreakpoint);
+		else if (mobileToc.addListener) mobileToc.addListener(handleTocBreakpoint);
 	}
 
 	/* \u2014\u2014 \u4E3B\u9898\uFF1A\u9ED8\u8BA4\u6D45\u8272 \u2014\u2014 */
@@ -1740,6 +1836,12 @@ var V3_SCRIPT = `
 
 	/* \u2014\u2014 \u5927\u7EB2\u6EDA\u52A8\u9AD8\u4EAE \u2014\u2014 */
 	var tocLinks = Array.prototype.slice.call(document.querySelectorAll('.v3-toc a[href^="#"]'));
+	/* \u624B\u673A\u4E0A\u70B9\u51FB\u76EE\u5F55\u9879\u8DF3\u8F6C\u540E\u7ACB\u5373\u6536\u8D77\u60AC\u6D6E\u9762\u677F */
+	for (var tli = 0; tli < tocLinks.length; tli++) {
+		tocLinks[tli].addEventListener('click', function () {
+			if (isMobileToc()) closeTocDrawer();
+		});
+	}
 	if (tocLinks.length > 0) {
 		var linkById = {};
 		for (var q = 0; q < tocLinks.length; q++) {
@@ -1858,12 +1960,13 @@ function buildV3Template(options) {
 							<button type="button" class="${BTN_GHOST}" data-v3-menu="theme" aria-haspopup="menu" aria-expanded="false" data-i18n-title="btn.theme">${ICON_THEME}</button>
 							<div class="v3-pop" role="menu" data-v3-pop="theme" hidden>${buildThemeItems()}</div>
 						</div>
-						<div class="inline-flex items-center">
-							<button type="button" class="${BTN_SOLID} bg-primary/10 text-primary" data-v3-toc-btn data-i18n-title="btn.toc">${ICON_LIST}</button>
-						</div>
+						${tocHtml ? `<div class="inline-flex items-center">
+							<button type="button" class="${BTN_SOLID} bg-primary/10 text-primary" data-v3-toc-btn aria-controls="v3-toc" aria-expanded="true" data-i18n-title="btn.toc">${ICON_LIST}</button>
+						</div>` : ""}
 					</div>
 				</div>
 			</header>
+			<div class="v3-toc-backdrop" data-v3-toc-backdrop hidden></div>
 			<main class="flex-1 overflow-visible p-4 sm:p-6 lg:p-8">
 				<div class="mx-auto flex flex-col lg:flex-row items-start gap-4 overflow-visible transition-all duration-300 max-w-5xl v3-main-box" data-v3-width data-wide="max-w-none" data-narrow="max-w-5xl">
 					<div class="flex-1 min-w-0 overflow-visible rounded-2xl border bg-card shadow-sm">
@@ -1873,7 +1976,7 @@ function buildV3Template(options) {
 							</article>
 						</div>
 					</div>
-					${tocHtml ? `<nav class="v3-toc border border-border bg-card rounded-xl flex flex-col h-fit max-h-[calc(100vh-102px)] overflow-hidden shrink-0 w-60 sticky top-20" aria-label="Outline">
+					${tocHtml ? `<nav id="v3-toc" class="v3-toc border border-border bg-card rounded-xl flex flex-col h-fit max-h-[calc(100vh-102px)] overflow-hidden shrink-0 w-60 sticky top-20" aria-label="Outline">
 						<div class="sticky top-0 border-b bg-card px-4 py-3 flex items-center justify-between z-10">
 							<h3 class="text-sm font-semibold" data-i18n="toc.title">${escapeHtml(I18N["toc.title"].en)}</h3>
 						</div>

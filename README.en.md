@@ -11,7 +11,7 @@ Export Obsidian notes to a single HTML file. Images, KaTeX formulas and styles a
 - Three export templates, switchable in settings:
   - v1 Classic: identical to the previous look
   - v2 Refreshed: light/dark theme (follows the system by default, toggle button in the top-right corner persists your choice), mobile-friendly layout (table of contents becomes a drawer on narrow screens), full-width content, wide tables scroll horizontally instead of squeezing columns
-  - v3 Obsidian-style: mirrors the reading layout of an Obsync share page — top toolbar (width / color scheme / theme / outline), card-style body and an outline on the right; defaults to light mode and a narrow layout, and picks its UI language from the system (Chinese or English, English as the fallback). Tables, code and formulas scroll horizontally on narrow screens, and the outline is height-capped so it can't take over a phone screen
+  - v3 Obsidian-style: mirrors the reading layout of an Obsync share page — top toolbar (width / color scheme / theme / outline), card-style body and an outline on the right; defaults to light mode and a narrow layout, and picks its UI language from the system (Chinese or English, English as the fallback). Tables, code and formulas scroll horizontally on narrow screens; on phones the outline is collapsed by default and opens as a floating panel from the toolbar button
 - Auto-generated table of contents, highlights the current section while scrolling, width adjustable by dragging (200–600px, v1/v2)
 - Code blocks with line numbers and a copy button
 - Images and formulas embedded as Base64 — the export is a fully self-contained single file
