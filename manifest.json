@@ -4,7 +4,7 @@
 	"version": "1.1.1",
 	"minAppVersion": "0.15.0",
 	"description": "Export notes to beautiful HTML files.",
-	"author": "almoost",
-	"authorUrl": "https://github.com/JustWSH",
+	"author": "wshRepo",
+	"authorUrl": "https://github.com/wshRepo",
 	"isDesktopOnly": true
 }

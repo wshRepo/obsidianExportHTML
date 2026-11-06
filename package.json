@@ -14,7 +14,7 @@
 		"export",
 		"html"
 	],
-	"author": "almoost",
+	"author": "wshRepo",
 	"license": "MIT",
 	"devDependencies": {
 		"@eslint/json": "0.14.0",

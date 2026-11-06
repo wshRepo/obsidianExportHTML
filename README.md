@@ -4,7 +4,7 @@
 
 **将 Obsidian 笔记转换为专业级单文件 HTML 文档**
 
-[![Version](https://img.shields.io/badge/version-1.1.1-blue)](https://github.com/JustWSH/obsidianExportHTML)
+[![Version](https://img.shields.io/badge/version-1.1.1-blue)](https://github.com/wshRepo/obsidianExportHTML)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Obsidian](https://img.shields.io/badge/obsidian-0.15.0+-purple)](https://obsidian.md)
 
