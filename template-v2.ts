@@ -315,7 +315,7 @@ hr {
 table {
 	width: 100%;
 	border-collapse: collapse;
-	margin: 0 0 1.75em;
+	margin: 0;
 	font-size: 0.9375rem;
 }
 
@@ -335,9 +335,22 @@ tbody tr:last-child td {
 	border-bottom: none;
 }
 
-/* 行数较多时表头随横向滚动消失是已知取舍，这里纵向不换行优先可读性 */
 th, td {
 	overflow-wrap: anywhere;
+}
+
+/* 表格横向滚动容器：由模板拼装时包裹 <table> 生成。
+ * 列给最小宽度，避免窄屏把每列压成一字一行；
+ * 宁可左右滚，也不挤压可读性 */
+.table-scroll {
+	overflow-x: auto;
+	-webkit-overflow-scrolling: touch;
+	margin-bottom: 1.75em;
+}
+
+.table-scroll td,
+.table-scroll th {
+	min-width: 7em;
 }
 
 .math-display {
@@ -471,13 +484,15 @@ th, td {
 	z-index: 30;
 }
 
-/* ===== 页面布局：侧栏 + 居中可读列宽 ===== */
+/* ===== 页面布局：侧栏 + 可读列宽 =====
+ * 列宽主动放宽到 56rem：目标场景是 SOP / 技术文档，
+ * 表格与代码块更需要横向空间，单纯散文场景由 h2 分节弥补行长 */
 .page {
 	margin-left: 264px;
 }
 
 .prose {
-	max-width: 44rem;
+	max-width: 56rem;
 	margin: 0 auto;
 	padding: 3.5rem 1.5rem 6rem;
 }
@@ -560,6 +575,12 @@ th, td {
 	.prose {
 		max-width: none;
 		padding: 0;
+	}
+
+	/* 打印时取消横向滚动，表格按纸张宽度自然排版 */
+	.table-scroll {
+		overflow: visible;
+		margin-bottom: 1.75em;
 	}
 
 	.code-block-wrapper {
@@ -759,6 +780,12 @@ export function buildV2Template(options: V2TemplateOptions): string {
 		.replace(/>/g, '&gt;')
 		.replace(/"/g, '&quot;');
 
+	// 表格统一包进横向滚动容器：窄屏时不挤压列宽，改为左右滚动。
+	// Markdown 渲染不会产生嵌套 table，直接按标签替换成对包裹是安全的
+	const bodyHtml = contentHtml
+		.replace(/<table([^>]*)>/g, '<div class="table-scroll"><table$1>')
+		.replace(/<\/table>/g, '</table></div>');
+
 	return `<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -783,7 +810,7 @@ export function buildV2Template(options: V2TemplateOptions): string {
 	</button>
 	<div class="page">
 		<main class="prose">
-			${contentHtml}
+			${bodyHtml}
 		</main>
 	</div>
 	${INTERACTION_SCRIPT}

@@ -283,7 +283,7 @@ hr {
 table {
 	width: 100%;
 	border-collapse: collapse;
-	margin: 0 0 1.75em;
+	margin: 0;
 	font-size: 0.9375rem;
 }
 
@@ -303,9 +303,22 @@ tbody tr:last-child td {
 	border-bottom: none;
 }
 
-/* 行数较多时表头随横向滚动消失是已知取舍，这里纵向不换行优先可读性 */
 th, td {
 	overflow-wrap: anywhere;
+}
+
+/* 表格横向滚动容器：由模板拼装时包裹 <table> 生成。
+ * 列给最小宽度，避免窄屏把每列压成一字一行；
+ * 宁可左右滚，也不挤压可读性 */
+.table-scroll {
+	overflow-x: auto;
+	-webkit-overflow-scrolling: touch;
+	margin-bottom: 1.75em;
+}
+
+.table-scroll td,
+.table-scroll th {
+	min-width: 7em;
 }
 
 .math-display {
@@ -439,13 +452,15 @@ th, td {
 	z-index: 30;
 }
 
-/* ===== 页面布局：侧栏 + 居中可读列宽 ===== */
+/* ===== 页面布局：侧栏 + 可读列宽 =====
+ * 列宽主动放宽到 56rem：目标场景是 SOP / 技术文档，
+ * 表格与代码块更需要横向空间，单纯散文场景由 h2 分节弥补行长 */
 .page {
 	margin-left: 264px;
 }
 
 .prose {
-	max-width: 44rem;
+	max-width: 56rem;
 	margin: 0 auto;
 	padding: 3.5rem 1.5rem 6rem;
 }
@@ -528,6 +543,12 @@ th, td {
 	.prose {
 		max-width: none;
 		padding: 0;
+	}
+
+	/* 打印时取消横向滚动，表格按纸张宽度自然排版 */
+	.table-scroll {
+		overflow: visible;
+		margin-bottom: 1.75em;
 	}
 
 	.code-block-wrapper {
@@ -648,7 +669,7 @@ person<span class="token punctuation">.</span><span class="token method function
 <div class="code-block-wrapper"><div class="line-numbers"></div><pre><code></code><button class="copy-code-button"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="svg-icon lucide-copy"><rect x="8" y="8" width="14" height="14" rx="2" ry="2"></rect><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path></svg></button></pre></div>
 <hr>
 <h2 data-heading="📊 表格演示" dir="auto" id="heading-7">📊 表格演示</h2>
-<table>
+<div class="table-scroll"><table>
 <thead>
 <tr>
 <th align="left">ID</th>
@@ -698,7 +719,7 @@ person<span class="token punctuation">.</span><span class="token method function
 <td align="left">赵六</td>
 </tr>
 </tbody>
-</table>
+</table></div>
 <hr>
 <h2 data-heading="📝 引用块" dir="auto" id="heading-8">📝 引用块</h2>
 <h3 data-heading="基础引用" dir="auto" id="heading-9">基础引用</h3>
