@@ -21,7 +21,7 @@ Copy-Item main.js my-export-html\main.js -Force
 
 ## 发布 tag 规范
 
-Obsidian 社区插件要求版本 tag 是**纯数字不带 `v` 前缀**，如 `1.1.1`（不是 `v1.1.1`）。发布新版本时对当前 master 直接打 `git tag <版本号>` 并推送两个远端（github.com 与 gitcode）。
+Obsidian 社区插件要求版本 tag 是**纯数字不带 `v` 前缀**，如 `1.1.1`（不是 `v1.1.1`）。发布新版本时对当前 master 直接 `git tag <版本号>` 并推送到 GitHub 远端。
 
 注意：
 - `generate-katex-constants.js` 失败会 `exit(1)` 直接中断 `npm run build`，不会自动跳过。缺 `node_modules\katex` 时需手动分步执行：先跑 esbuild（跳过生成脚本），构建仍会成功

@@ -352,6 +352,12 @@ th, td {
 	overflow-x: auto;
 	-webkit-overflow-scrolling: touch;
 	margin-bottom: 1.75em;
+	border-radius: 8px;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+:root[data-theme="dark"] .table-scroll {
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
 }
 
 .table-scroll td,
@@ -631,6 +637,7 @@ body.toc-resizing {
 	.table-scroll {
 		overflow: visible;
 		margin-bottom: 1.75em;
+		box-shadow: none;
 	}
 
 	img {
