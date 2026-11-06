@@ -1,6 +1,9 @@
 import { App, Notice, Plugin, PluginSettingTab, Setting, TFile, Menu, FileSystemAdapter, MarkdownRenderer } from 'obsidian';
-import { KATEX_JS_BASE64, KATEX_CSS_BASE64 } from './katex-constants';
-import { buildV2Template, TemplateVersion } from './template-v2';
+import { buildV2Template } from './template-v2';
+import { buildV3Template } from './template-v3';
+import { TemplateVersion } from './template-types';
+import { buildKatexCss, buildKatexScript } from './katex-render';
+import { splitByCode, stripCode, applyMathPlaceholders } from './markdown-utils';
 
 /**
  * 专业简洁的文档样式
@@ -587,7 +590,7 @@ table tr:hover {
 interface ExportHTMLPluginSettings {
 	autoOpenFolder: boolean;
 	exportPath: string;
-	/** 导出使用的 HTML 模板版本，v2 为带双主题与移动端适配的新版样式 */
+	/** 导出使用的 HTML 模板版本：v1 经典、v2 双主题、v3 复刻 Obsync 分享页 */
 	templateVersion: TemplateVersion;
 }
 
@@ -597,8 +600,8 @@ interface ExportHTMLPluginSettings {
 const DEFAULT_SETTINGS: ExportHTMLPluginSettings = {
 	autoOpenFolder: true,
 	exportPath: '',
-	/** 默认使用 v2（双主题 + 移动端适配） */
-	templateVersion: 'v2'
+	/** 默认使用 v3（复刻 Obsync 分享页的阅读版式） */
+	templateVersion: 'v3'
 };
 
 /**
@@ -656,9 +659,9 @@ const TRANSLATIONS: { [key: string]: { [lang: string]: string } } = {
 		en: 'HTML template'
 	},
 	'Choose the HTML template used for export. v1 is the classic style; v2 refreshes it with light/dark themes and mobile-friendly reading.': {
-		'zh-CN': '导出使用的 HTML 模板。v1 为经典样式；v2 优化了排版，支持浅色/深色主题与手机友好阅读。',
-		'zh': '导出使用的 HTML 模板。v1 为经典样式；v2 优化了排版，支持浅色/深色主题与手机友好阅读。',
-		en: 'Choose the HTML template used for export. v1 is the classic style; v2 refreshes it with light/dark themes and mobile-friendly reading.'
+		'zh-CN': '导出使用的 HTML 模板。v1 为经典样式；v2 优化了排版，支持浅色/深色主题与手机友好阅读；v3 复刻 Obsync 分享页的阅读版式，默认浅色与宽屏。',
+		'zh': '导出使用的 HTML 模板。v1 为经典样式；v2 优化了排版，支持浅色/深色主题与手机友好阅读；v3 复刻 Obsync 分享页的阅读版式，默认浅色与宽屏。',
+		en: 'Choose the HTML template used for export. v1 is the classic style; v2 refreshes it with light/dark themes and mobile-friendly reading; v3 mirrors the Obsync share-page layout, defaulting to light mode and full width.'
 	},
 	'Classic (v1)': {
 		'zh-CN': '经典（v1）',
@@ -669,6 +672,11 @@ const TRANSLATIONS: { [key: string]: { [lang: string]: string } } = {
 		'zh-CN': '焕新（v2）',
 		'zh': '焕新（v2）',
 		en: 'Refreshed (v2)'
+	},
+	'Obsidian-style (v3)': {
+		'zh-CN': 'Obsidian 风格（v3）',
+		'zh': 'Obsidian 风格（v3）',
+		en: 'Obsidian-style (v3)'
 	}
 };
 
@@ -807,6 +815,12 @@ export default class ExportHTMLPlugin extends Plugin {
 	 * @returns 生成的 HTML 字符串
 	 */
 	async convertMarkdownToHTML(markdown: string, file: TFile): Promise<string> {
+		// v3 不展示「属性」区块，先在源头剥离 frontmatter，
+		// 否则 Obsidian 渲染时会产出 metadata-container
+		if (this.settings.templateVersion === 'v3') {
+			markdown = this.stripFrontmatter(markdown);
+		}
+
 		const imageLinks = this.extractImageLinks(markdown);
 		const hasMath = this.detectMathFormulas(markdown);
 		
@@ -814,33 +828,21 @@ export default class ExportHTMLPlugin extends Plugin {
 		const mathPlaceholders: string[] = [];
 		
 		if (hasMath) {
-			protectedMarkdown = protectedMarkdown.replace(/\$\$([\s\S]+?)\$\$/g, (match, latex) => {
-				const placeholder = `MATH_BLOCK_PLACEHOLDER_${mathPlaceholders.length}_END`;
-				mathPlaceholders.push(`$$${latex}$$`);
-				return placeholder;
-			});
-			
-			protectedMarkdown = protectedMarkdown.replace(/\$([^$\n]+?)\$/g, (match, latex) => {
-				const placeholder = `MATH_INLINE_PLACEHOLDER_${mathPlaceholders.length}_END`;
-				mathPlaceholders.push(`$${latex}$`);
-				return placeholder;
-			});
-			
-			protectedMarkdown = protectedMarkdown.replace(/\\\(([^)]+?)\\\)/g, (match, latex) => {
-				const placeholder = `MATH_INLINE_PLACEHOLDER_${mathPlaceholders.length}_END`;
-				mathPlaceholders.push(`\\(${latex}\\)`);
-				return placeholder;
-			});
-			
-			protectedMarkdown = protectedMarkdown.replace(/\\\[([\s\S]+?)\\\]/g, (match, latex) => {
-				const placeholder = `MATH_BLOCK_PLACEHOLDER_${mathPlaceholders.length}_END`;
-				mathPlaceholders.push(`\\[${latex}\\]`);
-				return placeholder;
-			});
+			// 只在非代码区域做替换：代码块与行内代码里的 $ 是字面量
+			// （例如 JS 模板字符串 `${name}`），成对出现会被误当成行内公式，
+			// 渲染时被 KaTeX 吃掉变成乱码
+			protectedMarkdown = splitByCode(markdown)
+				.map((segment) => segment.code ? segment.text : applyMathPlaceholders(segment.text, mathPlaceholders))
+				.join('');
 		}
 		
 		const tempDiv = document.createElement('div');
 		await MarkdownRenderer.render(this.app, protectedMarkdown, tempDiv, file.path, null);
+
+		if (this.settings.templateVersion === 'v3') {
+			// 兜底：frontmatter 已剥离，这里再清一次以防正文内嵌属性容器
+			tempDiv.querySelectorAll('.metadata-container').forEach(el => el.remove());
+		}
 		
 		if (hasMath) {
 			// 处理数学公式占位符，将临时 div 中的占位符替换为实际的数学公式元素
@@ -988,41 +990,8 @@ export default class ExportHTMLPlugin extends Plugin {
 		toc += this.generateNestedTOC(headingsData);
 		toc += '</div>';
 
-		const mathJaxCSS = hasMath ? `<style>${atob(KATEX_CSS_BASE64)}</style>` : '';
-
-		const mathJaxScript = hasMath ? `
-<script>${atob(KATEX_JS_BASE64)}</script>
-<script>
-window.addEventListener('DOMContentLoaded', function() {
-	document.querySelectorAll('.math-display').forEach(function(el) {
-		try {
-			const latex = el.textContent.trim();
-			el.innerHTML = '';
-			katex.render(latex, el, {
-				displayMode: true,
-				throwOnError: false,
-				output: 'html'
-			});
-		} catch (e) {
-			// 忽略错误
-		}
-	});
-	
-	document.querySelectorAll('.math-inline').forEach(function(el) {
-		try {
-			const latex = el.textContent.trim();
-			el.innerHTML = '';
-			katex.render(latex, el, {
-				displayMode: false,
-				throwOnError: false,
-				output: 'html'
-			});
-		} catch (e) {
-			// 忽略错误
-		}
-	});
-});
-</script>` : '';
+		const mathJaxCSS = hasMath ? buildKatexCss() : '';
+		const mathJaxScript = hasMath ? buildKatexScript() : '';
 
 		// v2 模板：独立的排版外壳（浅色/深色主题 + 移动端抽屉目录），
 		// 复用上文已生成的 TOC、 KaTeX 注入与正文 HTML，v1 路径完全不受影响
@@ -1030,6 +999,19 @@ window.addEventListener('DOMContentLoaded', function() {
 			return buildV2Template({
 				title: documentTitle,
 				tocHtml: this.generateNestedTOC(headingsData),
+				contentHtml: html,
+				mathCss: mathJaxCSS,
+				mathScript: mathJaxScript
+			});
+		}
+
+		// v3 模板：复刻 Obsync 分享页的阅读版式（顶栏 + 卡片正文 + 右侧扁平大纲），
+		// 自带扁平目录与页头时间，复用同一份正文 HTML 与 KaTeX 注入
+		if (this.settings.templateVersion === 'v3') {
+			return buildV3Template({
+				title: documentTitle,
+				mtime: file.stat.mtime,
+				headings: headingsData,
 				contentHtml: html,
 				mathCss: mathJaxCSS,
 				mathScript: mathJaxScript
@@ -1266,20 +1248,41 @@ document.addEventListener('DOMContentLoaded', function() {
 	}
 
 	/**
+	 * 剥离文首 YAML frontmatter
+	 *
+	 * v3 不展示「属性」，而 frontmatter 会被 Obsidian 渲染成属性容器，
+	 * 因此在渲染前从源文本直接去掉。
+	 * 额外要求块内确实存在 key: value 行，避免把「以 --- 开头的分割线正文」误判为 frontmatter。
+	 * @param markdown 原始 Markdown
+	 * @returns 去掉 frontmatter 后的 Markdown
+	 */
+	stripFrontmatter(markdown: string): string {
+		const match = markdown.match(/^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/);
+		if (!match || !/^[A-Za-z0-9_-]+\s*:/m.test(match[1])) {
+			return markdown;
+		}
+		return markdown.slice(match[0].length);
+	}
+
+	/**
 	 * 检测 Markdown 中是否包含数学公式
+	 *
+	 * 先剔除代码区域：代码里的 `$`、`\(` 等是字面量，
+	 * 据此判定会让纯代码笔记也背上 KaTeX 的体积。
 	 * @param markdown Markdown 内容
 	 * @returns 是否包含数学公式
 	 */
 	detectMathFormulas(markdown: string): boolean {
+		const text = stripCode(markdown);
 		const inlineMathRegex = /\$\s*[^$]+?\s*\$/g;
 		const blockMathRegex = /\$\$[\s\S]+?\$\$/g;
 		const latexInlineRegex = /\\\(\s*[^\\]+?\s*\\\)/g;
 		const latexBlockRegex = /\\\[([\s\S]+?)\\\]/g;
 		
-		return inlineMathRegex.test(markdown) || 
-			blockMathRegex.test(markdown) || 
-			latexInlineRegex.test(markdown) || 
-			latexBlockRegex.test(markdown);
+		return inlineMathRegex.test(text) || 
+			blockMathRegex.test(text) || 
+			latexInlineRegex.test(text) || 
+			latexBlockRegex.test(text);
 	}
 
 	/**
@@ -1600,10 +1603,11 @@ class ExportHTMLSettingTab extends PluginSettingTab {
 			.addDropdown(dropdown => dropdown
 				.addOption('v1', this.plugin.translate('Classic (v1)'))
 				.addOption('v2', this.plugin.translate('Refreshed (v2)'))
+				.addOption('v3', this.plugin.translate('Obsidian-style (v3)'))
 				.setValue(this.plugin.settings.templateVersion)
 				.onChange(async (value: string) => {
 					// 只接受合法值，防止旧配置里出现意外的字符串
-					if (value === 'v1' || value === 'v2') {
+					if (value === 'v1' || value === 'v2' || value === 'v3') {
 						this.plugin.settings.templateVersion = value;
 						await this.plugin.saveSettings();
 					}

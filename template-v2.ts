@@ -13,10 +13,7 @@
  * 因此不引用任何外部字体 / CDN，图标为单位内联 SVG。
  */
 
-/**
- * 模板版本类型
- */
-export type TemplateVersion = 'v1' | 'v2';
+/* 模板版本类型 TemplateVersion 已迁至 template-types.ts，由 main.ts 统一引用 */
 
 /**
  * v2 模板入参（共享逻辑由调用方处理：KaTeX 注入、TOC 生成等）
